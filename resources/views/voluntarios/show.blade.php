@@ -40,14 +40,13 @@
                         <tr>
                             <th>Ocupación:</th>
                             <td>{{ $voluntario->ocupacion }}</td>
-                        </tr>
-                        <tr>
+                        </tr>                        <tr>
                             <th>Fecha de Registro:</th>
-                            <td>{{ $voluntario->created_at->format('d/m/Y H:i') }}</td>
+                            <td>{{ $voluntario->created_at ? $voluntario->created_at->format('d/m/Y H:i') : 'N/A' }}</td>
                         </tr>
                         <tr>
                             <th>Última Actualización:</th>
-                            <td>{{ $voluntario->updated_at->format('d/m/Y H:i') }}</td>
+                            <td>{{ $voluntario->updated_at ? $voluntario->updated_at->format('d/m/Y H:i') : 'N/A' }}</td>
                         </tr>
                     </table>
 

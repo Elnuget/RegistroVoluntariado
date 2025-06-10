@@ -1,0 +1,80 @@
+@extends('layouts.app')
+
+@section('content')
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h3>Crear Nuevo Registro</h3>
+                        <a href="{{ route('registros.index') }}" class="btn btn-secondary">Volver</a>
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    @if ($errors->any())
+                        <div class="alert alert-danger">
+                            <ul>
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+
+                    <form method="POST" action="{{ route('registros.store') }}">
+                        @csrf
+
+                        <div class="form-group mb-3">
+                            <label for="voluntario_id">Voluntario</label>
+                            <select class="form-control" id="voluntario_id" name="voluntario_id" required>
+                                <option value="">Seleccione un voluntario</option>
+                                @foreach ($voluntarios as $voluntario)
+                                    <option value="{{ $voluntario->id }}" {{ old('voluntario_id') == $voluntario->id ? 'selected' : '' }}>
+                                        {{ $voluntario->nombre_completo }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label for="fecha">Fecha (MM/DD/YYYY)</label>
+                            <input type="date" class="form-control" id="fecha" name="fecha" value="{{ old('fecha') }}" required>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label for="hora">Hora</label>
+                            <input type="time" class="form-control" id="hora" name="hora" value="{{ old('hora') }}" required>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label for="tipo">Tipo</label>
+                            <input type="text" class="form-control" id="tipo" name="tipo" value="{{ old('tipo') }}" required>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label for="ubicacion_desde">Ubicación Desde</label>
+                            <input type="text" class="form-control" id="ubicacion_desde" name="ubicacion_desde" value="{{ old('ubicacion_desde') }}" required>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label for="ubicacion_hasta">Ubicación Hasta</label>
+                            <input type="text" class="form-control" id="ubicacion_hasta" name="ubicacion_hasta" value="{{ old('ubicacion_hasta') }}" required>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label for="millas">Millas</label>
+                            <input type="number" step="0.01" class="form-control" id="millas" name="millas" value="{{ old('millas') }}" required>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <button type="submit" class="btn btn-primary">Guardar Registro</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection

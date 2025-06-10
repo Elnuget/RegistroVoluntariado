@@ -25,4 +25,12 @@ class Voluntario extends Model
         'telefono',
         'ocupacion',
     ];
+
+    /**
+     * Obtiene los registros asociados con este voluntario.
+     */
+    public function registros()
+    {
+        return $this->hasMany(Registro::class);
+    }
 }
