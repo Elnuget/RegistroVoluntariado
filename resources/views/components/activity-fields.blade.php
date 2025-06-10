@@ -1,10 +1,4 @@
 <div class="form-question">
-    <label for="tipo" class="question-label required">Tipo de Actividad</label>
-    <input type="text" class="form-input" id="tipo" name="tipo" value="{{ old('tipo') }}" 
-           placeholder="Ej: Transporte, Interpretación, Apoyo administrativo" required>
-</div>
-
-<div class="form-question">
     <label for="ubicacion_desde" class="question-label required">Ubicación de Origen</label>
     <input type="text" class="form-input" id="ubicacion_desde" name="ubicacion_desde" 
            value="{{ old('ubicacion_desde') }}" placeholder="Dirección de inicio" required>
