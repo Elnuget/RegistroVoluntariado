@@ -205,9 +205,7 @@
                 </div>
             @endif            <form method="POST" action="{{ route('registros.store') }}">
                 @csrf
-                <input type="hidden" name="from_public_form" value="1">
-
-                <div class="form-question">
+                <input type="hidden" name="from_public_form" value="1">                <div class="form-question">
                     <label for="voluntario_id" class="question-label required">Voluntario</label>
                     <select class="form-select" id="voluntario_id" name="voluntario_id" required>
                         <option value="">Seleccione su nombre</option>
@@ -216,6 +214,16 @@
                                 {{ $voluntario->nombre_completo }}
                             </option>
                         @endforeach
+                    </select>
+                </div>
+
+                <div class="form-question">
+                    <label for="tipo_actividad" class="question-label required">Tipo de Actividad</label>
+                    <select class="form-select" id="tipo_actividad" name="tipo_actividad" required>
+                        <option value="">Seleccione el tipo de actividad</option>
+                        <option value="Entrada" {{ old('tipo_actividad') == 'Entrada' ? 'selected' : '' }}>Entrada</option>
+                        <option value="Salida" {{ old('tipo_actividad') == 'Salida' ? 'selected' : '' }}>Salida</option>
+                        <option value="Extra" {{ old('tipo_actividad') == 'Extra' ? 'selected' : '' }}>Extra</option>
                     </select>
                 </div>
 

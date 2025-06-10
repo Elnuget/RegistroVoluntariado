@@ -30,6 +30,14 @@
                             </td>
                         </tr>
                         <tr>
+                            <th>Tipo de Actividad:</th>
+                            <td>
+                                <span class="badge bg-{{ $registro->tipo_actividad == 'Entrada' ? 'success' : ($registro->tipo_actividad == 'Salida' ? 'primary' : 'warning') }}">
+                                    {{ $registro->tipo_actividad ?? 'N/A' }}
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
                             <th>Fecha:</th>
                             <td>{{ $registro->fecha ? $registro->fecha->format('m/d/Y') : 'N/A' }}</td>
                         </tr>

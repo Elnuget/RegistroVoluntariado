@@ -33,6 +33,7 @@ class RegistroController extends Controller
     {
         $request->validate([
             'voluntario_id' => 'required|exists:voluntarios,id',
+            'tipo_actividad' => 'required|string|in:Entrada,Salida,Extra',
             'fecha' => 'required|date',
             'hora' => 'required',
             'tipo' => 'required|string|max:255',
@@ -79,6 +80,7 @@ class RegistroController extends Controller
     {
         $request->validate([
             'voluntario_id' => 'required|exists:voluntarios,id',
+            'tipo_actividad' => 'required|string|in:Entrada,Salida,Extra',
             'fecha' => 'required|date',
             'hora' => 'required',
             'tipo' => 'required|string|max:255',

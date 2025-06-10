@@ -40,6 +40,16 @@
                         </div>
 
                         <div class="form-group mb-3">
+                            <label for="tipo_actividad">Tipo de Actividad</label>
+                            <select class="form-control" id="tipo_actividad" name="tipo_actividad" required>
+                                <option value="">Seleccione el tipo de actividad</option>
+                                <option value="Entrada" {{ old('tipo_actividad', $registro->tipo_actividad) == 'Entrada' ? 'selected' : '' }}>Entrada</option>
+                                <option value="Salida" {{ old('tipo_actividad', $registro->tipo_actividad) == 'Salida' ? 'selected' : '' }}>Salida</option>
+                                <option value="Extra" {{ old('tipo_actividad', $registro->tipo_actividad) == 'Extra' ? 'selected' : '' }}>Extra</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group mb-3">
                             <label for="fecha">Fecha (MM/DD/YYYY)</label>
                             <input type="date" class="form-control" id="fecha" name="fecha" value="{{ old('fecha', $registro->fecha->format('Y-m-d')) }}" required>
                         </div>

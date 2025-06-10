@@ -24,6 +24,7 @@
                             <tr>
                                 <th>ID</th>
                                 <th>Voluntario</th>
+                                <th>Tipo Actividad</th>
                                 <th>Fecha</th>
                                 <th>Hora</th>
                                 <th>Tipo</th>
@@ -38,6 +39,11 @@
                                 <tr>
                                     <td>{{ $registro->id }}</td>
                                     <td>{{ $registro->voluntario->nombre_completo }}</td>
+                                    <td>
+                                        <span class="badge bg-{{ $registro->tipo_actividad == 'Entrada' ? 'success' : ($registro->tipo_actividad == 'Salida' ? 'primary' : 'warning') }}">
+                                            {{ $registro->tipo_actividad ?? 'N/A' }}
+                                        </span>
+                                    </td>
                                     <td>{{ $registro->fecha->format('m/d/Y') }}</td>
                                     <td>{{ $registro->hora->format('h:i A') }}</td>
                                     <td>{{ $registro->tipo }}</td>

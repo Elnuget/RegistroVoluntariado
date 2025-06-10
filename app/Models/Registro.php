@@ -20,6 +20,7 @@ class Registro extends Model
      */
     protected $fillable = [
         'voluntario_id',
+        'tipo_actividad',
         'fecha',
         'hora',
         'tipo',
