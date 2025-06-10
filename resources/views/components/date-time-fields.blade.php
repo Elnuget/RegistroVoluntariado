@@ -3,7 +3,7 @@
     <small style="color: #5f6368; font-size: 12px; display: block; margin-bottom: 8px;">
         Formato: MM/DD/YYYY (Mes/Día/Año)
     </small>
-    <input type="date" class="form-input" id="fecha" name="fecha" value="{{ old('fecha') }}" required>
+    <input type="date" class="form-input" id="fecha" name="fecha" value="{{ old('fecha') }}" data-format="mm/dd/yyyy" required>
     <div class="timezone-info">Se establecerá automáticamente la fecha actual de Minnesota</div>
 </div>
 

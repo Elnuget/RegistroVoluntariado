@@ -46,10 +46,6 @@
                             <td>{{ $registro->hora ? $registro->hora->format('h:i A') : 'N/A' }}</td>
                         </tr>
                         <tr>
-                            <th>Tipo:</th>
-                            <td>{{ $registro->tipo }}</td>
-                        </tr>
-                        <tr>
                             <th>Ubicación Desde:</th>
                             <td>{{ $registro->ubicacion_desde }}</td>
                         </tr>
@@ -63,11 +59,11 @@
                         </tr>
                         <tr>
                             <th>Fecha de Registro:</th>
-                            <td>{{ $registro->created_at ? $registro->created_at->format('d/m/Y H:i') : 'N/A' }}</td>
+                            <td>{{ $registro->created_at ? $registro->created_at->format('m/d/Y H:i') : 'N/A' }}</td>
                         </tr>
                         <tr>
                             <th>Última Actualización:</th>
-                            <td>{{ $registro->updated_at ? $registro->updated_at->format('d/m/Y H:i') : 'N/A' }}</td>
+                            <td>{{ $registro->updated_at ? $registro->updated_at->format('m/d/Y H:i') : 'N/A' }}</td>
                         </tr>
                     </table>
 

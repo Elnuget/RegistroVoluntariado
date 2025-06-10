@@ -59,11 +59,6 @@
                         </div>
 
                         <div class="form-group mb-3">
-                            <label for="tipo">Tipo</label>
-                            <input type="text" class="form-control" id="tipo" name="tipo" value="{{ old('tipo') }}" required>
-                        </div>
-
-                        <div class="form-group mb-3">
                             <label for="ubicacion_desde">Ubicación Desde</label>
                             <input type="text" class="form-control" id="ubicacion_desde" name="ubicacion_desde" value="{{ old('ubicacion_desde') }}" required>
                         </div>

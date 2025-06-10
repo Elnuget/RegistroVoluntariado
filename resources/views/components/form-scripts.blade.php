@@ -205,6 +205,24 @@ document.getElementById('fecha').addEventListener('change', function() {
     }
 });
 
+// Asegurar que el formato de fecha siempre sea MM/DD/YYYY en la interfaz
+document.getElementById('fecha').addEventListener('input', function(e) {
+    if (this.value) {
+        const dateParts = this.value.split('-'); // Viene en formato YYYY-MM-DD
+        if (dateParts.length === 3) {
+            const year = dateParts[0];
+            const month = dateParts[1];
+            const day = dateParts[2];
+            
+            // Actualizar el texto informativo con el formato MM/DD/YYYY
+            const fechaInfo = this.parentElement.querySelector('.timezone-info');
+            if (fechaInfo) {
+                fechaInfo.innerHTML = `Fecha seleccionada: ${month}/${day}/${year} (Formato MM/DD/YYYY)`;
+            }
+        }
+    }
+});
+
 // Navegación con teclado
 voluntarioSearch.addEventListener('keydown', function(e) {
     const visibleItems = Array.from(dropdownItems).filter(item => 
@@ -257,5 +275,29 @@ function updateSelection(visibleItems, selectedIndex) {
         oldVoluntarioItem.classList.add('selected');
     }
 @endif
+
+// Función para asegurar que la fecha siempre se muestre en formato MM/DD/YYYY
+function formatDateToMMDDYYYY(dateString) {
+    if (!dateString) return '';
+    const dateParts = dateString.split('-'); // Viene en formato YYYY-MM-DD
+    if (dateParts.length !== 3) return dateString;
+    
+    const year = dateParts[0];
+    const month = dateParts[1];
+    const day = dateParts[2];
+    return `${month}/${day}/${year}`;
+}
+
+// Inicializar cualquier fecha existente al cargar la página
+document.addEventListener('DOMContentLoaded', function() {
+    const fechaInput = document.getElementById('fecha');
+    if (fechaInput && fechaInput.value) {
+        const fechaInfo = fechaInput.parentElement.querySelector('.timezone-info');
+        if (fechaInfo) {
+            const formattedDate = formatDateToMMDDYYYY(fechaInput.value);
+            fechaInfo.innerHTML = `Fecha seleccionada: ${formattedDate} (Formato MM/DD/YYYY)`;
+        }
+    }
+});
 </script>
 @endpush

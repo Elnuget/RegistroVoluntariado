@@ -27,7 +27,6 @@
                                 <th>Tipo Actividad</th>
                                 <th>Fecha</th>
                                 <th>Hora</th>
-                                <th>Tipo</th>
                                 <th>Desde</th>
                                 <th>Hasta</th>
                                 <th>Millas</th>
@@ -46,7 +45,6 @@
                                     </td>
                                     <td>{{ $registro->fecha->format('m/d/Y') }}</td>
                                     <td>{{ $registro->hora->format('h:i A') }}</td>
-                                    <td>{{ $registro->tipo }}</td>
                                     <td>{{ $registro->ubicacion_desde }}</td>
                                     <td>{{ $registro->ubicacion_hasta }}</td>
                                     <td>{{ number_format($registro->millas, 2) }}</td>

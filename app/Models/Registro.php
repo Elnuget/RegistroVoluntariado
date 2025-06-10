@@ -23,7 +23,6 @@ class Registro extends Model
         'tipo_actividad',
         'fecha',
         'hora',
-        'tipo',
         'ubicacion_desde',
         'ubicacion_hasta',
         'millas',
