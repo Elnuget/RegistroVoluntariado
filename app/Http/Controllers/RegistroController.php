@@ -38,7 +38,7 @@ class RegistroController extends Controller
             'hora' => 'required',
             'ubicacion_desde' => 'required|string|max:255',
             'ubicacion_hasta' => 'required|string|max:255',
-            'millas' => 'required|numeric|min:0',
+            'millas' => 'nullable|numeric|min:0',
         ]);
 
         Registro::create($request->all());
@@ -84,7 +84,7 @@ class RegistroController extends Controller
             'hora' => 'required',
             'ubicacion_desde' => 'required|string|max:255',
             'ubicacion_hasta' => 'required|string|max:255',
-            'millas' => 'required|numeric|min:0',
+            'millas' => 'nullable|numeric|min:0',
         ]);
 
         $registro = Registro::findOrFail($id);

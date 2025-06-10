@@ -13,7 +13,7 @@
 </div>
 
 <div class="form-question">
-    <label for="millas" class="question-label required">Millas Recorridas</label>
+    <label for="millas" class="question-label">Millas Recorridas</label>
     <input type="number" step="0.01" class="form-input" id="millas" name="millas" 
-           value="{{ old('millas') }}" placeholder="0.00" required>
+           value="{{ old('millas') }}" placeholder="0.00">
 </div>
