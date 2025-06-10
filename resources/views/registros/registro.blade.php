@@ -132,10 +132,17 @@
         .dropdown-item.selected {
             background-color: #e8f0fe;
             color: #1a73e8;
-        }
-
-        .dropdown-item:last-child {
+        }        .dropdown-item:last-child {
             border-bottom: none;
+        }        .timezone-info {
+            font-size: 11px;
+            color: #5f6368;
+            margin-top: 4px;
+            font-style: italic;
+            padding: 4px 8px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            border-left: 3px solid #34a853;
         }
 
         .submit-section {
@@ -266,16 +273,17 @@
                         <option value="Salida" {{ old('tipo_actividad') == 'Salida' ? 'selected' : '' }}>Salida</option>
                         <option value="Extra" {{ old('tipo_actividad') == 'Extra' ? 'selected' : '' }}>Extra</option>
                     </select>
-                </div>
-
-                <div class="form-question">
+                </div>                <div class="form-question">
                     <label for="fecha" class="question-label required">Fecha</label>
+                    <small style="color: #5f6368; font-size: 12px; display: block; margin-bottom: 8px;">
+                        Formato: MM/DD/YYYY (Mes/Día/Año)
+                    </small>
                     <input type="date" class="form-input" id="fecha" name="fecha" value="{{ old('fecha') }}" required>
-                </div>
-
-                <div class="form-question">
-                    <label for="hora" class="question-label required">Hora</label>
+                    <div class="timezone-info">Se establecerá automáticamente la fecha actual de Minnesota</div>
+                </div><div class="form-question">
+                    <label for="hora" class="question-label required">Hora (Zona Horaria Central - Minnesota)</label>
                     <input type="time" class="form-input" id="hora" name="hora" value="{{ old('hora') }}" required>
+                    <div class="timezone-info">Se establecerá automáticamente la hora actual de Minnesota</div>
                 </div>
 
                 <div class="form-question">
@@ -311,13 +319,56 @@
         <div class="form-footer">
             Sistema de Registro de Voluntariado - {{ date('Y') }}
         </div>
-    </div>    <script>
-        // Agregar fecha actual por defecto
+    </div>    <script>        // Agregar fecha y hora actual por defecto usando zona horaria de Minnesota (Central Time)
         document.addEventListener('DOMContentLoaded', function() {
             const fechaInput = document.getElementById('fecha');
-            if (!fechaInput.value) {
-                const today = new Date().toISOString().split('T')[0];
-                fechaInput.value = today;
+            const horaInput = document.getElementById('hora');
+            
+            if (!fechaInput.value || !horaInput.value) {
+                // Crear fecha con zona horaria de Minnesota (Central Time)
+                const now = new Date();
+                // Usar Intl.DateTimeFormat para obtener la fecha en zona horaria de Minnesota
+                const minnesotaFormatter = new Intl.DateTimeFormat('en-US', {
+                    timeZone: 'America/Chicago',
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: false
+                });
+                
+                const minnesotaParts = minnesotaFormatter.formatToParts(now);
+                const month = minnesotaParts.find(p => p.type === 'month').value;
+                const day = minnesotaParts.find(p => p.type === 'day').value;
+                const year = minnesotaParts.find(p => p.type === 'year').value;
+                const hour = minnesotaParts.find(p => p.type === 'hour').value;
+                const minute = minnesotaParts.find(p => p.type === 'minute').value;
+                
+                // Formato YYYY-MM-DD para la fecha (requerido por HTML date input)
+                if (!fechaInput.value) {
+                    fechaInput.value = `${year}-${month}-${day}`;
+                    
+                    // Actualizar el texto informativo con la fecha formateada MM/DD/YYYY
+                    const fechaInfo = fechaInput.parentElement.querySelector('.timezone-info');
+                    if (fechaInfo) {
+                        fechaInfo.innerHTML = `Fecha establecida: ${month}/${day}/${year} (Minnesota)`;
+                    }
+                }
+                
+                // Formato HH:MM para la hora
+                if (!horaInput.value) {
+                    horaInput.value = `${hour}:${minute}`;
+                    
+                    // Actualizar el texto informativo con la hora establecida
+                    const horaInfo = horaInput.parentElement.querySelector('.timezone-info');
+                    if (horaInfo) {
+                        const hourNum = parseInt(hour);
+                        const ampm = hourNum >= 12 ? 'PM' : 'AM';
+                        const displayHour = hourNum % 12 || 12;
+                        horaInfo.innerHTML = `Hora establecida: ${displayHour}:${minute} ${ampm} (Central Time)`;
+                    }
+                }
             }
         });
 
@@ -451,13 +502,21 @@
             } catch (error) {
                 console.error('Error en la solicitud:', error);
             }
-        }
-
-        // También verificar cuando cambie la fecha
+        }        // También verificar cuando cambie la fecha
         document.getElementById('fecha').addEventListener('change', function() {
             const selectedVoluntarioId = voluntarioId.value;
             if (selectedVoluntarioId) {
                 checkAndSetTipoActividad(selectedVoluntarioId);
+            }
+            
+            // Actualizar el mensaje informativo con el formato correcto MM/DD/YYYY
+            const fechaInfo = this.parentElement.querySelector('.timezone-info');
+            if (fechaInfo && this.value) {
+                const dateParts = this.value.split('-'); // Viene en formato YYYY-MM-DD
+                const year = dateParts[0];
+                const month = dateParts[1];
+                const day = dateParts[2];
+                fechaInfo.innerHTML = `Fecha seleccionada: ${month}/${day}/${year} (Formato MM/DD/YYYY)`;
             }
         });
 
