@@ -13,3 +13,6 @@ Route::resource('voluntarios', VoluntarioController::class);
 
 // Rutas para el manejo de registros
 Route::resource('registros', RegistroController::class);
+
+// Ruta para el formulario público de registro
+Route::get('/formulario', [RegistroController::class, 'formulario'])->name('registros.formulario');

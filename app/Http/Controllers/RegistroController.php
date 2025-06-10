@@ -43,6 +43,12 @@ class RegistroController extends Controller
 
         Registro::create($request->all());
 
+        // Si viene del formulario público, redirigir de vuelta al formulario
+        if ($request->has('from_public_form')) {
+            return redirect()->route('registros.formulario')
+                ->with('success', 'Registro creado exitosamente. ¡Gracias por su participación!');
+        }
+
         return redirect()->route('registros.index')
             ->with('success', 'Registro creado exitosamente.');
     }
@@ -98,5 +104,14 @@ class RegistroController extends Controller
 
         return redirect()->route('registros.index')
             ->with('success', 'Registro eliminado exitosamente.');
+    }
+
+    /**
+     * Show the public form for creating a new resource (Google Forms style).
+     */
+    public function formulario()
+    {
+        $voluntarios = Voluntario::all();
+        return view('registros.registro', compact('voluntarios'));
     }
 }
