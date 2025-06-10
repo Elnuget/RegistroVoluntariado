@@ -1,11 +1,64 @@
 @push('scripts')
 <script>
-// Agregar fecha y hora actual por defecto usando zona horaria de Minnesota (Central Time)
+// Manejar la fecha en formato MM/DD/YYYY con inputs personalizados
 document.addEventListener('DOMContentLoaded', function() {
     const fechaInput = document.getElementById('fecha');
+    const fechaMesInput = document.getElementById('fecha_mes');
+    const fechaDiaInput = document.getElementById('fecha_dia');
+    const fechaAnioInput = document.getElementById('fecha_anio');
     const horaInput = document.getElementById('hora');
     
-    if (!fechaInput.value || !horaInput.value) {
+    // Función para actualizar el campo oculto con la fecha en formato YYYY-MM-DD
+    function actualizarFechaOculta() {
+        const mes = fechaMesInput.value.padStart(2, '0');
+        const dia = fechaDiaInput.value.padStart(2, '0');
+        const anio = fechaAnioInput.value;
+        
+        if (mes && dia && anio && anio.length === 4) {
+            fechaInput.value = `${anio}-${mes}-${dia}`;
+            
+            // Actualizar el mensaje informativo
+            const fechaInfo = fechaInput.parentElement.parentElement.querySelector('.timezone-info');
+            if (fechaInfo) {
+                fechaInfo.innerHTML = `Fecha seleccionada: ${mes}/${dia}/${anio} (Formato MM/DD/YYYY)`;
+            }
+            
+            // Disparar el evento change en el campo oculto para que otros scripts lo detecten
+            const event = new Event('change');
+            fechaInput.dispatchEvent(event);
+        }
+    }
+    
+    // Agregar listeners a los campos de fecha
+    fechaMesInput.addEventListener('input', function() {
+        if (this.value.length === 2 && parseInt(this.value) > 0 && parseInt(this.value) <= 12) {
+            fechaDiaInput.focus();
+        }
+        actualizarFechaOculta();
+    });
+    
+    fechaDiaInput.addEventListener('input', function() {
+        if (this.value.length === 2 && parseInt(this.value) > 0 && parseInt(this.value) <= 31) {
+            fechaAnioInput.focus();
+        }
+        actualizarFechaOculta();
+    });
+    
+    fechaAnioInput.addEventListener('input', function() {
+        actualizarFechaOculta();
+    });
+    
+    // Solo permitir números en los campos de fecha
+    [fechaMesInput, fechaDiaInput, fechaAnioInput].forEach(input => {
+        input.addEventListener('keypress', function(e) {
+            if (!/[0-9]/.test(e.key)) {
+                e.preventDefault();
+            }
+        });
+    });
+    
+    // Establecer fecha actual de Minnesota si no hay valor
+    if (!fechaInput.value || fechaInput.value === '') {
         // Crear fecha con zona horaria de Minnesota (Central Time)
         const now = new Date();
         // Usar Intl.DateTimeFormat para obtener la fecha en zona horaria de Minnesota
@@ -26,15 +79,16 @@ document.addEventListener('DOMContentLoaded', function() {
         const hour = minnesotaParts.find(p => p.type === 'hour').value;
         const minute = minnesotaParts.find(p => p.type === 'minute').value;
         
-        // Formato YYYY-MM-DD para la fecha (requerido por HTML date input)
-        if (!fechaInput.value) {
-            fechaInput.value = `${year}-${month}-${day}`;
-            
-            // Actualizar el texto informativo con la fecha formateada MM/DD/YYYY
-            const fechaInfo = fechaInput.parentElement.querySelector('.timezone-info');
-            if (fechaInfo) {
-                fechaInfo.innerHTML = `Fecha establecida: ${month}/${day}/${year} (Minnesota)`;
-            }
+        // Establecer los valores en los campos
+        fechaMesInput.value = month;
+        fechaDiaInput.value = day;
+        fechaAnioInput.value = year;
+        fechaInput.value = `${year}-${month}-${day}`;
+        
+        // Actualizar el mensaje informativo
+        const fechaInfo = fechaInput.parentElement.parentElement.querySelector('.timezone-info');
+        if (fechaInfo) {
+            fechaInfo.innerHTML = `Fecha establecida: ${month}/${day}/${year} (Minnesota)`;
         }
         
         // Formato HH:MM para la hora
@@ -48,6 +102,24 @@ document.addEventListener('DOMContentLoaded', function() {
                 const ampm = hourNum >= 12 ? 'PM' : 'AM';
                 const displayHour = hourNum % 12 || 12;
                 horaInfo.innerHTML = `Hora establecida: ${displayHour}:${minute} ${ampm} (Central Time)`;
+            }
+        }
+    } else {
+        // Si ya hay una fecha, dividirla y colocarla en los campos
+        const dateParts = fechaInput.value.split('-'); // Viene en formato YYYY-MM-DD
+        if (dateParts.length === 3) {
+            const year = dateParts[0];
+            const month = dateParts[1];
+            const day = dateParts[2];
+            
+            fechaAnioInput.value = year;
+            fechaMesInput.value = month;
+            fechaDiaInput.value = day;
+            
+            // Actualizar el mensaje informativo
+            const fechaInfo = fechaInput.parentElement.parentElement.querySelector('.timezone-info');
+            if (fechaInfo) {
+                fechaInfo.innerHTML = `Fecha seleccionada: ${month}/${day}/${year} (Formato MM/DD/YYYY)`;
             }
         }
     }
@@ -143,7 +215,7 @@ dropdownItems.forEach(item => {
 
 // Función para verificar registros existentes y configurar tipo de actividad
 async function checkAndSetTipoActividad(voluntarioId) {
-    const fechaInput = document.getElementById('fecha');
+    const fechaInput = document.getElementById('fecha'); // Este es ahora el campo oculto
     const tipoActividadSelect = document.getElementById('tipo_actividad');
     
     if (!voluntarioId || !fechaInput.value) {
@@ -189,37 +261,9 @@ async function checkAndSetTipoActividad(voluntarioId) {
 
 // También verificar cuando cambie la fecha
 document.getElementById('fecha').addEventListener('change', function() {
-    const selectedVoluntarioId = voluntarioId.value;
+    const selectedVoluntarioId = document.getElementById('voluntario_id').value;
     if (selectedVoluntarioId) {
         checkAndSetTipoActividad(selectedVoluntarioId);
-    }
-    
-    // Actualizar el mensaje informativo con el formato correcto MM/DD/YYYY
-    const fechaInfo = this.parentElement.querySelector('.timezone-info');
-    if (fechaInfo && this.value) {
-        const dateParts = this.value.split('-'); // Viene en formato YYYY-MM-DD
-        const year = dateParts[0];
-        const month = dateParts[1];
-        const day = dateParts[2];
-        fechaInfo.innerHTML = `Fecha seleccionada: ${month}/${day}/${year} (Formato MM/DD/YYYY)`;
-    }
-});
-
-// Asegurar que el formato de fecha siempre sea MM/DD/YYYY en la interfaz
-document.getElementById('fecha').addEventListener('input', function(e) {
-    if (this.value) {
-        const dateParts = this.value.split('-'); // Viene en formato YYYY-MM-DD
-        if (dateParts.length === 3) {
-            const year = dateParts[0];
-            const month = dateParts[1];
-            const day = dateParts[2];
-            
-            // Actualizar el texto informativo con el formato MM/DD/YYYY
-            const fechaInfo = this.parentElement.querySelector('.timezone-info');
-            if (fechaInfo) {
-                fechaInfo.innerHTML = `Fecha seleccionada: ${month}/${day}/${year} (Formato MM/DD/YYYY)`;
-            }
-        }
     }
 });
 
@@ -275,29 +319,5 @@ function updateSelection(visibleItems, selectedIndex) {
         oldVoluntarioItem.classList.add('selected');
     }
 @endif
-
-// Función para asegurar que la fecha siempre se muestre en formato MM/DD/YYYY
-function formatDateToMMDDYYYY(dateString) {
-    if (!dateString) return '';
-    const dateParts = dateString.split('-'); // Viene en formato YYYY-MM-DD
-    if (dateParts.length !== 3) return dateString;
-    
-    const year = dateParts[0];
-    const month = dateParts[1];
-    const day = dateParts[2];
-    return `${month}/${day}/${year}`;
-}
-
-// Inicializar cualquier fecha existente al cargar la página
-document.addEventListener('DOMContentLoaded', function() {
-    const fechaInput = document.getElementById('fecha');
-    if (fechaInput && fechaInput.value) {
-        const fechaInfo = fechaInput.parentElement.querySelector('.timezone-info');
-        if (fechaInfo) {
-            const formattedDate = formatDateToMMDDYYYY(fechaInput.value);
-            fechaInfo.innerHTML = `Fecha seleccionada: ${formattedDate} (Formato MM/DD/YYYY)`;
-        }
-    }
-});
 </script>
 @endpush
