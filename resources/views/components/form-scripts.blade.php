@@ -251,6 +251,11 @@ async function checkAndSetTipoActividad(voluntarioId) {
             }
             
             tipoActividadContainer.appendChild(infoMessage);
+            
+            // Si el tipo de actividad es "Entrada", obtenemos y establecemos la dirección del voluntario como ubicación de origen
+            if (data.tipo_sugerido === 'Entrada') {
+                obtenerDireccionVoluntario(voluntarioId);
+            }
         } else {
             console.error('Error al verificar registros:', data.error);
         }
@@ -319,5 +324,46 @@ function updateSelection(visibleItems, selectedIndex) {
         oldVoluntarioItem.classList.add('selected');
     }
 @endif
+
+// Función para obtener y establecer la dirección del voluntario como ubicación de origen
+async function obtenerDireccionVoluntario(voluntarioId) {
+    try {
+        const response = await fetch(`/api/voluntario/${voluntarioId}`);
+        const data = await response.json();
+        
+        if (data.success) {
+            const voluntario = data.voluntario;
+            const ubicacionDesdeInput = document.getElementById('ubicacion_desde');
+            const direccionInfo = document.getElementById('direccion_origen_info');
+            
+            // Establecer la dirección como ubicación de origen
+            ubicacionDesdeInput.value = voluntario.direccion;
+            
+            // Mostrar mensaje informativo
+            if (direccionInfo) {
+                direccionInfo.innerHTML = `<span style="color: #137333;">✓ Dirección cargada automáticamente del voluntario</span>`;
+            }
+        } else {
+            console.error('Error al obtener información del voluntario:', data.error);
+        }
+    } catch (error) {
+        console.error('Error al obtener la dirección del voluntario:', error);
+    }
+}
+
+// Escuchar cambios en el tipo de actividad para actualizar la ubicación de origen
+document.getElementById('tipo_actividad').addEventListener('change', function() {
+    const selectedVoluntarioId = document.getElementById('voluntario_id').value;
+    
+    if (this.value === 'Entrada' && selectedVoluntarioId) {
+        obtenerDireccionVoluntario(selectedVoluntarioId);
+    } else if (this.value !== 'Entrada') {
+        // Limpiar mensaje informativo si no es "Entrada"
+        const direccionInfo = document.getElementById('direccion_origen_info');
+        if (direccionInfo) {
+            direccionInfo.innerHTML = '';
+        }
+    }
+});
 </script>
 @endpush

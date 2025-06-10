@@ -19,3 +19,6 @@ Route::get('/formulario', [RegistroController::class, 'formulario'])->name('regi
 
 // Ruta API para verificar registros de voluntario en una fecha
 Route::get('/api/voluntario-registros', [RegistroController::class, 'checkVoluntarioRegistros'])->name('api.voluntario.registros');
+
+// Ruta API para obtener datos de un voluntario
+Route::get('/api/voluntario/{id}', [RegistroController::class, 'getVoluntarioInfo'])->name('api.voluntario.info');

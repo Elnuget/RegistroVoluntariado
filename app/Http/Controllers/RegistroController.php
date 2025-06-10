@@ -116,6 +116,33 @@ class RegistroController extends Controller
     }
 
     /**
+     * Get voluntario information by ID.
+     * Returns JSON response for AJAX requests.
+     */
+    public function getVoluntarioInfo(string $id)
+    {
+        try {
+            $voluntario = Voluntario::findOrFail($id);
+            return response()->json([
+                'success' => true,
+                'voluntario' => [
+                    'id' => $voluntario->id,
+                    'nombre_completo' => $voluntario->nombre_completo,
+                    'direccion' => $voluntario->direccion,
+                    'email' => $voluntario->email,
+                    'telefono' => $voluntario->telefono,
+                    'ocupacion' => $voluntario->ocupacion
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => 'No se encontró el voluntario solicitado'
+            ], 404);
+        }
+    }
+
+    /**
      * Check if a volunteer has any records for a specific date.
      * Returns JSON response for AJAX requests.
      */

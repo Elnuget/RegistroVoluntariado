@@ -2,6 +2,7 @@
     <label for="ubicacion_desde" class="question-label required">Ubicación de Origen</label>
     <input type="text" class="form-input" id="ubicacion_desde" name="ubicacion_desde" 
            value="{{ old('ubicacion_desde') }}" placeholder="Dirección de inicio" required>
+    <div class="direccion-info" id="direccion_origen_info" style="font-size: 12px; color: #5f6368; margin-top: 4px;"></div>
 </div>
 
 <div class="form-question">
