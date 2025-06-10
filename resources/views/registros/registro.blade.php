@@ -387,9 +387,7 @@
             } else {
                 dropdown.style.display = 'none';
             }
-        }
-
-        // Manejar selección de voluntario
+        }        // Manejar selección de voluntario
         dropdownItems.forEach(item => {
             item.addEventListener('click', function() {
                 const value = this.getAttribute('data-value');
@@ -403,7 +401,64 @@
                 dropdownItems.forEach(i => i.classList.remove('selected'));
                 // Agregar selección actual
                 this.classList.add('selected');
+
+                // Verificar registros y configurar tipo de actividad automáticamente
+                checkAndSetTipoActividad(value);
             });
+        });
+
+        // Función para verificar registros existentes y configurar tipo de actividad
+        async function checkAndSetTipoActividad(voluntarioId) {
+            const fechaInput = document.getElementById('fecha');
+            const tipoActividadSelect = document.getElementById('tipo_actividad');
+            
+            if (!voluntarioId || !fechaInput.value) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/voluntario-registros?voluntario_id=${voluntarioId}&fecha=${fechaInput.value}`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    // Seleccionar automáticamente el tipo de actividad sugerido
+                    tipoActividadSelect.value = data.tipo_sugerido;
+                    
+                    // Mostrar información visual (opcional)
+                    const tipoActividadContainer = tipoActividadSelect.parentElement;
+                    
+                    // Remover mensajes anteriores
+                    const existingMessage = tipoActividadContainer.querySelector('.activity-info');
+                    if (existingMessage) {
+                        existingMessage.remove();
+                    }
+                    
+                    // Agregar mensaje informativo
+                    const infoMessage = document.createElement('div');
+                    infoMessage.className = 'activity-info';
+                    infoMessage.style.cssText = 'font-size: 12px; color: #5f6368; margin-top: 4px;';
+                    
+                    if (data.tiene_registros) {
+                        infoMessage.innerHTML = `<span style="color: #1a73e8;">ℹ️ El voluntario ya tiene ${data.registros_count} registro(s) hoy. Se sugiere "Salida".</span>`;
+                    } else {
+                        infoMessage.innerHTML = `<span style="color: #137333;">✓ Primer registro del día. Se sugiere "Entrada".</span>`;
+                    }
+                    
+                    tipoActividadContainer.appendChild(infoMessage);
+                } else {
+                    console.error('Error al verificar registros:', data.error);
+                }
+            } catch (error) {
+                console.error('Error en la solicitud:', error);
+            }
+        }
+
+        // También verificar cuando cambie la fecha
+        document.getElementById('fecha').addEventListener('change', function() {
+            const selectedVoluntarioId = voluntarioId.value;
+            if (selectedVoluntarioId) {
+                checkAndSetTipoActividad(selectedVoluntarioId);
+            }
         });
 
         // Navegación con teclado

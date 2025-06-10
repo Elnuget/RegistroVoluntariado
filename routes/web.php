@@ -16,3 +16,6 @@ Route::resource('registros', RegistroController::class);
 
 // Ruta para el formulario público de registro
 Route::get('/formulario', [RegistroController::class, 'formulario'])->name('registros.formulario');
+
+// Ruta API para verificar registros de voluntario en una fecha
+Route::get('/api/voluntario-registros', [RegistroController::class, 'checkVoluntarioRegistros'])->name('api.voluntario.registros');

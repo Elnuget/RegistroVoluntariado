@@ -116,4 +116,38 @@ class RegistroController extends Controller
         $voluntarios = Voluntario::all();
         return view('registros.registro', compact('voluntarios'));
     }
+
+    /**
+     * Check if a volunteer has any records for a specific date.
+     * Returns JSON response for AJAX requests.
+     */
+    public function checkVoluntarioRegistros(Request $request)
+    {
+        $voluntarioId = $request->query('voluntario_id');
+        $fecha = $request->query('fecha');
+
+        if (!$voluntarioId || !$fecha) {
+            return response()->json(['error' => 'Parámetros requeridos: voluntario_id y fecha'], 400);
+        }
+
+        $registrosEnFecha = Registro::where('voluntario_id', $voluntarioId)
+            ->whereDate('fecha', $fecha)
+            ->get();
+
+        $tieneRegistros = $registrosEnFecha->count() > 0;
+        $tipoSugerido = $tieneRegistros ? 'Salida' : 'Entrada';
+
+        return response()->json([
+            'tiene_registros' => $tieneRegistros,
+            'tipo_sugerido' => $tipoSugerido,
+            'registros_count' => $registrosEnFecha->count(),
+            'registros' => $registrosEnFecha->map(function($registro) {
+                return [
+                    'id' => $registro->id,
+                    'tipo_actividad' => $registro->tipo_actividad,
+                    'hora' => $registro->hora->format('H:i')
+                ];
+            })
+        ]);
+    }
 }
