@@ -123,19 +123,11 @@
 <body>
     <div class="container">
         <h1 class="title">Sistema de Registro de Voluntariado</h1>
-        <p class="subtitle">Gestione voluntarios y registre actividades de manera eficiente</p>
+        <p class="subtitle">Este sistema fue desarrollado por Carlos Angulo para Sara Angulo</p>
         
         <div class="buttons-container">
-            <a href="{{ route('voluntarios.index') }}" class="btn btn-primary">
-                👥 Gestionar Voluntarios
-            </a>
-            
-            <a href="{{ route('registros.index') }}" class="btn btn-secondary">
-                📋 Ver Registros
-            </a>
-            
-            <a href="{{ route('registros.formulario') }}" class="btn btn-success">
-                📝 Formulario
+            <a href="https://wa.me/593983468115" target="_blank" class="btn btn-primary">
+                💬 Contactar por WhatsApp
             </a>
         </div>
         
