@@ -94,11 +94,48 @@
             background: white;
             outline: none;
             transition: border-color 0.2s;
-        }
-
-        .form-select:focus {
+        }        .form-select:focus {
             border-color: #1a73e8;
             box-shadow: 0 0 0 1px #1a73e8;
+        }
+
+        .select-container {
+            position: relative;
+        }
+
+        .dropdown-list {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #dadce0;
+            border-top: none;
+            border-radius: 0 0 4px 4px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+        }
+
+        .dropdown-item {
+            padding: 12px;
+            cursor: pointer;
+            border-bottom: 1px solid #f1f3f4;
+            transition: background-color 0.2s;
+        }
+
+        .dropdown-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .dropdown-item.selected {
+            background-color: #e8f0fe;
+            color: #1a73e8;
+        }
+
+        .dropdown-item:last-child {
+            border-bottom: none;
         }
 
         .submit-section {
@@ -207,14 +244,18 @@
                 @csrf
                 <input type="hidden" name="from_public_form" value="1">                <div class="form-question">
                     <label for="voluntario_id" class="question-label required">Voluntario</label>
-                    <select class="form-select" id="voluntario_id" name="voluntario_id" required>
-                        <option value="">Seleccione su nombre</option>
-                        @foreach ($voluntarios as $voluntario)
-                            <option value="{{ $voluntario->id }}" {{ old('voluntario_id') == $voluntario->id ? 'selected' : '' }}>
-                                {{ $voluntario->nombre_completo }}
-                            </option>
-                        @endforeach
-                    </select>
+                    <div class="select-container">
+                        <input type="text" class="form-input" id="voluntario_search" 
+                               placeholder="Escriba para buscar o seleccione de la lista" autocomplete="off">
+                        <input type="hidden" id="voluntario_id" name="voluntario_id" required>
+                        <div class="dropdown-list" id="voluntario_dropdown">
+                            @foreach ($voluntarios as $voluntario)
+                                <div class="dropdown-item" data-value="{{ $voluntario->id }}">
+                                    {{ $voluntario->nombre_completo }}
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
                 </div>
 
                 <div class="form-question">
@@ -270,9 +311,7 @@
         <div class="form-footer">
             Sistema de Registro de Voluntariado - {{ date('Y') }}
         </div>
-    </div>
-
-    <script>
+    </div>    <script>
         // Agregar fecha actual por defecto
         document.addEventListener('DOMContentLoaded', function() {
             const fechaInput = document.getElementById('fecha');
@@ -295,6 +334,130 @@
                 }
             });
         });
+
+        // Funcionalidad del dropdown de voluntarios
+        const voluntarioSearch = document.getElementById('voluntario_search');
+        const voluntarioId = document.getElementById('voluntario_id');
+        const dropdown = document.getElementById('voluntario_dropdown');
+        const dropdownItems = document.querySelectorAll('.dropdown-item');
+
+        // Mostrar dropdown al hacer focus
+        voluntarioSearch.addEventListener('focus', function() {
+            dropdown.style.display = 'block';
+            filterVoluntarios(''); // Mostrar todos
+        });
+
+        // Ocultar dropdown al hacer click fuera
+        document.addEventListener('click', function(e) {
+            if (!voluntarioSearch.contains(e.target) && !dropdown.contains(e.target)) {
+                dropdown.style.display = 'none';
+            }
+        });
+
+        // Filtrar voluntarios mientras escribe
+        voluntarioSearch.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            filterVoluntarios(searchTerm);
+            
+            // Limpiar selección si el texto no coincide exactamente
+            const exactMatch = Array.from(dropdownItems).find(item => 
+                item.textContent.trim().toLowerCase() === searchTerm
+            );
+            if (!exactMatch) {
+                voluntarioId.value = '';
+            }
+        });
+
+        // Función para filtrar voluntarios
+        function filterVoluntarios(searchTerm) {
+            let hasVisibleItems = false;
+            dropdownItems.forEach(item => {
+                const text = item.textContent.trim().toLowerCase();
+                if (text.includes(searchTerm)) {
+                    item.style.display = 'block';
+                    hasVisibleItems = true;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+
+            // Mostrar u ocultar dropdown basado en si hay elementos visibles
+            if (hasVisibleItems) {
+                dropdown.style.display = 'block';
+            } else {
+                dropdown.style.display = 'none';
+            }
+        }
+
+        // Manejar selección de voluntario
+        dropdownItems.forEach(item => {
+            item.addEventListener('click', function() {
+                const value = this.getAttribute('data-value');
+                const text = this.textContent.trim();
+                
+                voluntarioSearch.value = text;
+                voluntarioId.value = value;
+                dropdown.style.display = 'none';
+                
+                // Remover selección anterior
+                dropdownItems.forEach(i => i.classList.remove('selected'));
+                // Agregar selección actual
+                this.classList.add('selected');
+            });
+        });
+
+        // Navegación con teclado
+        voluntarioSearch.addEventListener('keydown', function(e) {
+            const visibleItems = Array.from(dropdownItems).filter(item => 
+                item.style.display !== 'none'
+            );
+            
+            if (visibleItems.length === 0) return;
+            
+            const currentSelected = visibleItems.find(item => 
+                item.classList.contains('selected')
+            );
+            let selectedIndex = currentSelected ? visibleItems.indexOf(currentSelected) : -1;
+            
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                selectedIndex = (selectedIndex + 1) % visibleItems.length;
+                updateSelection(visibleItems, selectedIndex);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                selectedIndex = selectedIndex <= 0 ? visibleItems.length - 1 : selectedIndex - 1;
+                updateSelection(visibleItems, selectedIndex);
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                if (currentSelected) {
+                    currentSelected.click();
+                }
+            } else if (e.key === 'Escape') {
+                dropdown.style.display = 'none';
+            }
+        });
+
+        function updateSelection(visibleItems, selectedIndex) {
+            // Remover selección anterior
+            dropdownItems.forEach(item => item.classList.remove('selected'));
+            
+            // Agregar nueva selección
+            if (selectedIndex >= 0 && selectedIndex < visibleItems.length) {
+                visibleItems[selectedIndex].classList.add('selected');
+                visibleItems[selectedIndex].scrollIntoView({ block: 'nearest' });
+            }
+        }
+
+        // Restaurar valor seleccionado si existe (para cuando hay errores de validación)
+        @if(old('voluntario_id'))
+            const oldVoluntarioId = '{{ old('voluntario_id') }}';
+            const oldVoluntarioItem = document.querySelector(`[data-value="${oldVoluntarioId}"]`);
+            if (oldVoluntarioItem) {
+                voluntarioSearch.value = oldVoluntarioItem.textContent.trim();
+                voluntarioId.value = oldVoluntarioId;
+                oldVoluntarioItem.classList.add('selected');
+            }
+        @endif
     </script>
 </body>
 </html>
