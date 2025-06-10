@@ -249,12 +249,24 @@ async function checkAndSetTipoActividad(voluntarioId) {
             } else {
                 infoMessage.innerHTML = `<span style="color: #137333;">✓ Primer registro del día. Se sugiere "Entrada".</span>`;
             }
-            
-            tipoActividadContainer.appendChild(infoMessage);
+              tipoActividadContainer.appendChild(infoMessage);
             
             // Si el tipo de actividad es "Entrada", obtenemos y establecemos la dirección del voluntario como ubicación de origen
             if (data.tipo_sugerido === 'Entrada') {
                 obtenerDireccionVoluntario(voluntarioId);
+                
+                // También establecer la ubicación de destino como la oficina
+                const ubicacionHastaInput = document.getElementById('ubicacion_hasta');
+                const direccionDestinoInfo = document.getElementById('direccion_destino_info');
+                
+                // Dirección fija de la oficina
+                const direccionOficina = "2042 Wooddale Drive, Suite 250";
+                ubicacionHastaInput.value = direccionOficina;
+                
+                // Mostrar mensaje informativo
+                if (direccionDestinoInfo) {
+                    direccionDestinoInfo.innerHTML = `<span style="color: #137333;">✓ Dirección de la oficina establecida automáticamente</span>`;
+                }
             }
         } else {
             console.error('Error al verificar registros:', data.error);
@@ -322,6 +334,20 @@ function updateSelection(visibleItems, selectedIndex) {
         voluntarioSearch.value = oldVoluntarioItem.textContent.trim();
         voluntarioId.value = oldVoluntarioId;
         oldVoluntarioItem.classList.add('selected');
+        
+        // Si el tipo de actividad guardado es "Entrada", mostrar los mensajes informativos
+        @if(old('tipo_actividad') == 'Entrada')
+            const direccionOrigenInfo = document.getElementById('direccion_origen_info');
+            const direccionDestinoInfo = document.getElementById('direccion_destino_info');
+            
+            if (direccionOrigenInfo) {
+                direccionOrigenInfo.innerHTML = `<span style="color: #137333;">✓ Dirección cargada automáticamente del voluntario</span>`;
+            }
+            
+            if (direccionDestinoInfo) {
+                direccionDestinoInfo.innerHTML = `<span style="color: #137333;">✓ Dirección de la oficina establecida automáticamente</span>`;
+            }
+        @endif
     }
 @endif
 
@@ -355,13 +381,35 @@ async function obtenerDireccionVoluntario(voluntarioId) {
 document.getElementById('tipo_actividad').addEventListener('change', function() {
     const selectedVoluntarioId = document.getElementById('voluntario_id').value;
     
-    if (this.value === 'Entrada' && selectedVoluntarioId) {
-        obtenerDireccionVoluntario(selectedVoluntarioId);
-    } else if (this.value !== 'Entrada') {
-        // Limpiar mensaje informativo si no es "Entrada"
-        const direccionInfo = document.getElementById('direccion_origen_info');
-        if (direccionInfo) {
-            direccionInfo.innerHTML = '';
+    if (this.value === 'Entrada') {
+        // Si es tipo "Entrada", completar la ubicación de origen con la dirección del voluntario
+        if (selectedVoluntarioId) {
+            obtenerDireccionVoluntario(selectedVoluntarioId);
+        }
+        
+        // Establecer la ubicación de destino como la oficina
+        const ubicacionHastaInput = document.getElementById('ubicacion_hasta');
+        const direccionDestinoInfo = document.getElementById('direccion_destino_info');
+        
+        // Dirección fija de la oficina
+        const direccionOficina = "2042 Wooddale Drive, Suite 250";
+        ubicacionHastaInput.value = direccionOficina;
+        
+        // Mostrar mensaje informativo
+        if (direccionDestinoInfo) {
+            direccionDestinoInfo.innerHTML = `<span style="color: #137333;">✓ Dirección de la oficina establecida automáticamente</span>`;
+        }
+    } else {
+        // Limpiar mensajes informativos si no es "Entrada"
+        const direccionOrigenInfo = document.getElementById('direccion_origen_info');
+        const direccionDestinoInfo = document.getElementById('direccion_destino_info');
+        
+        if (direccionOrigenInfo) {
+            direccionOrigenInfo.innerHTML = '';
+        }
+        
+        if (direccionDestinoInfo) {
+            direccionDestinoInfo.innerHTML = '';
         }
     }
 });

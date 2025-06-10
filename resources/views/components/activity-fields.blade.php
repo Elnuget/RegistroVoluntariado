@@ -9,6 +9,7 @@
     <label for="ubicacion_hasta" class="question-label required">Ubicación de Destino</label>
     <input type="text" class="form-input" id="ubicacion_hasta" name="ubicacion_hasta" 
            value="{{ old('ubicacion_hasta') }}" placeholder="Dirección de destino" required>
+    <div class="direccion-info" id="direccion_destino_info" style="font-size: 12px; color: #5f6368; margin-top: 4px;"></div>
 </div>
 
 <div class="form-question">
