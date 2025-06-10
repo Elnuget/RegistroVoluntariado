@@ -7,19 +7,40 @@
 
     <title>{{ config('app.name', 'Registro de Voluntariado') }}</title>
 
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
-
-    <!-- Bootstrap CSS -->
+    <!-- Bootstrap CSS only -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
-    <!-- Scripts -->
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <!-- Custom Styles -->
+    <style>
+        body {
+            padding-top: 0;
+            background-color: #f8f9fa;
+        }
+        .app-navbar {
+            background-color: #343a40 !important;
+            box-shadow: 0 2px 4px rgba(0,0,0,.1);
+        }
+        .app-navbar .navbar-brand {
+            font-weight: bold;
+            color: #fff;
+        }
+        .app-navbar .nav-link {
+            color: rgba(255,255,255,.8) !important;
+            font-weight: 500;
+        }
+        .app-navbar .nav-link.active {
+            color: #fff !important;
+            font-weight: bold;
+        }
+        .content-container {
+            padding: 20px 0;
+        }
+    </style>
 </head>
-<body class="font-sans antialiased">
-    <div class="min-h-screen bg-gray-100">
-        <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+<body>
+    <!-- Navigation -->
+    <header>
+        <nav class="navbar navbar-expand-lg app-navbar">
             <div class="container">
                 <a class="navbar-brand" href="{{ url('/') }}">
                     {{ config('app.name', 'Registro de Voluntariado') }}
@@ -27,7 +48,8 @@
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-                <div class="collapse navbar-collapse" id="navbarNav">                    <ul class="navbar-nav">
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav">
                         <li class="nav-item">
                             <a class="nav-link {{ request()->is('/') ? 'active' : '' }}" href="{{ url('/') }}">Inicio</a>
                         </li>
@@ -41,14 +63,22 @@
                 </div>
             </div>
         </nav>
+    </header>
 
-        <!-- Page Content -->
-        <main>
+    <!-- Page Content -->
+    <main class="content-container">
+        <div class="container">
             @yield('content')
-        </main>
-    </div>
+        </div>
+    </main>
 
-    <!-- Bootstrap JS -->
+    <!-- Bootstrap Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Footer -->
+    <footer class="footer mt-auto py-3 bg-light">
+        <div class="container text-center">
+            <span class="text-muted">© {{ date('Y') }} Registro de Voluntariado</span>
+        </div>
+    </footer>
 </body>
 </html>
