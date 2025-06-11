@@ -176,7 +176,12 @@ class RegistroController extends Controller
     public function formulario()
     {
         $voluntarios = Voluntario::where('estado', 'activo')->get();
-        return view('registros.registro-modular', compact('voluntarios'));
+        $registros = Registro::with('voluntario')
+            ->orderBy('fecha', 'desc')
+            ->orderBy('hora', 'desc')
+            ->take(20) // Mostrar solo los últimos 20 registros
+            ->get();
+        return view('registros.registro-modular', compact('voluntarios', 'registros'));
     }
 
     /**
