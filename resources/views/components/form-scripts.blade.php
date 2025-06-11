@@ -250,10 +250,10 @@ async function checkAndSetTipoActividad(voluntarioId) {
                 infoMessage.innerHTML = `<span style="color: #137333;">✓ Primer registro del día. Se sugiere "Entrada".</span>`;
             }
               tipoActividadContainer.appendChild(infoMessage);
-            
-            // Si el tipo de actividad es "Entrada", obtenemos y establecemos la dirección del voluntario como ubicación de origen
+              // Configurar ubicaciones basado en el tipo de actividad
             if (data.tipo_sugerido === 'Entrada') {
-                obtenerDireccionVoluntario(voluntarioId);
+                // Para "Entrada": Voluntario -> Oficina
+                obtenerDireccionVoluntarioComoOrigen(voluntarioId);
                 
                 // También establecer la ubicación de destino como la oficina
                 const ubicacionHastaInput = document.getElementById('ubicacion_hasta');
@@ -267,6 +267,22 @@ async function checkAndSetTipoActividad(voluntarioId) {
                 if (direccionDestinoInfo) {
                     direccionDestinoInfo.innerHTML = `<span style="color: #137333;">✓ Dirección de la oficina establecida automáticamente</span>`;
                 }
+            } else if (data.tipo_sugerido === 'Salida') {
+                // Para "Salida": Oficina -> Voluntario
+                const ubicacionDesdeInput = document.getElementById('ubicacion_desde');
+                const direccionOrigenInfo = document.getElementById('direccion_origen_info');
+                
+                // Dirección fija de la oficina como origen
+                const direccionOficina = "2042 Wooddale Drive, Suite 250";
+                ubicacionDesdeInput.value = direccionOficina;
+                
+                // Mostrar mensaje informativo para origen
+                if (direccionOrigenInfo) {
+                    direccionOrigenInfo.innerHTML = `<span style="color: #137333;">✓ Dirección de la oficina establecida automáticamente</span>`;
+                }
+                
+                // Establecer la dirección del voluntario como destino
+                obtenerDireccionVoluntarioComoDestino(voluntarioId);
             }
         } else {
             console.error('Error al verificar registros:', data.error);
@@ -334,25 +350,35 @@ function updateSelection(visibleItems, selectedIndex) {
         voluntarioSearch.value = oldVoluntarioItem.textContent.trim();
         voluntarioId.value = oldVoluntarioId;
         oldVoluntarioItem.classList.add('selected');
-        
-        // Si el tipo de actividad guardado es "Entrada", mostrar los mensajes informativos
+          // Restaurar configuración de ubicaciones basado en el tipo de actividad guardado
         @if(old('tipo_actividad') == 'Entrada')
             const direccionOrigenInfo = document.getElementById('direccion_origen_info');
             const direccionDestinoInfo = document.getElementById('direccion_destino_info');
             
             if (direccionOrigenInfo) {
-                direccionOrigenInfo.innerHTML = `<span style="color: #137333;">✓ Dirección cargada automáticamente del voluntario</span>`;
+                direccionOrigenInfo.innerHTML = `<span style="color: #137333;">✓ Dirección del voluntario cargada automáticamente como origen</span>`;
             }
             
             if (direccionDestinoInfo) {
                 direccionDestinoInfo.innerHTML = `<span style="color: #137333;">✓ Dirección de la oficina establecida automáticamente</span>`;
+            }
+        @elseif(old('tipo_actividad') == 'Salida')
+            const direccionOrigenInfo = document.getElementById('direccion_origen_info');
+            const direccionDestinoInfo = document.getElementById('direccion_destino_info');
+            
+            if (direccionOrigenInfo) {
+                direccionOrigenInfo.innerHTML = `<span style="color: #137333;">✓ Dirección de la oficina establecida automáticamente</span>`;
+            }
+            
+            if (direccionDestinoInfo) {
+                direccionDestinoInfo.innerHTML = `<span style="color: #137333;">✓ Dirección del voluntario cargada automáticamente como destino</span>`;
             }
         @endif
     }
 @endif
 
 // Función para obtener y establecer la dirección del voluntario como ubicación de origen
-async function obtenerDireccionVoluntario(voluntarioId) {
+async function obtenerDireccionVoluntarioComoOrigen(voluntarioId) {
     try {
         const response = await fetch(`/api/voluntario/${voluntarioId}`);
         const data = await response.json();
@@ -367,7 +393,7 @@ async function obtenerDireccionVoluntario(voluntarioId) {
             
             // Mostrar mensaje informativo
             if (direccionInfo) {
-                direccionInfo.innerHTML = `<span style="color: #137333;">✓ Dirección cargada automáticamente del voluntario</span>`;
+                direccionInfo.innerHTML = `<span style="color: #137333;">✓ Dirección del voluntario cargada automáticamente como origen</span>`;
             }
         } else {
             console.error('Error al obtener información del voluntario:', data.error);
@@ -377,21 +403,45 @@ async function obtenerDireccionVoluntario(voluntarioId) {
     }
 }
 
-// Escuchar cambios en el tipo de actividad para actualizar la ubicación de origen
+// Función para obtener y establecer la dirección del voluntario como ubicación de destino
+async function obtenerDireccionVoluntarioComoDestino(voluntarioId) {
+    try {
+        const response = await fetch(`/api/voluntario/${voluntarioId}`);
+        const data = await response.json();
+        
+        if (data.success) {
+            const voluntario = data.voluntario;
+            const ubicacionHastaInput = document.getElementById('ubicacion_hasta');
+            const direccionInfo = document.getElementById('direccion_destino_info');
+            
+            // Establecer la dirección como ubicación de destino
+            ubicacionHastaInput.value = voluntario.direccion;
+            
+            // Mostrar mensaje informativo
+            if (direccionInfo) {
+                direccionInfo.innerHTML = `<span style="color: #137333;">✓ Dirección del voluntario cargada automáticamente como destino</span>`;
+            }
+        } else {
+            console.error('Error al obtener información del voluntario:', data.error);
+        }
+    } catch (error) {
+        console.error('Error al obtener la dirección del voluntario:', error);
+    }
+}
+
+// Escuchar cambios en el tipo de actividad para actualizar las ubicaciones
 document.getElementById('tipo_actividad').addEventListener('change', function() {
     const selectedVoluntarioId = document.getElementById('voluntario_id').value;
+    const ubicacionDesdeInput = document.getElementById('ubicacion_desde');
+    const ubicacionHastaInput = document.getElementById('ubicacion_hasta');
+    const direccionOrigenInfo = document.getElementById('direccion_origen_info');
+    const direccionDestinoInfo = document.getElementById('direccion_destino_info');
     
-    if (this.value === 'Entrada') {
-        // Si es tipo "Entrada", completar la ubicación de origen con la dirección del voluntario
-        if (selectedVoluntarioId) {
-            obtenerDireccionVoluntario(selectedVoluntarioId);
-        }
+    if (this.value === 'Entrada' && selectedVoluntarioId) {
+        // Para "Entrada": Voluntario -> Oficina
+        obtenerDireccionVoluntarioComoOrigen(selectedVoluntarioId);
         
         // Establecer la ubicación de destino como la oficina
-        const ubicacionHastaInput = document.getElementById('ubicacion_hasta');
-        const direccionDestinoInfo = document.getElementById('direccion_destino_info');
-        
-        // Dirección fija de la oficina
         const direccionOficina = "2042 Wooddale Drive, Suite 250";
         ubicacionHastaInput.value = direccionOficina;
         
@@ -399,10 +449,24 @@ document.getElementById('tipo_actividad').addEventListener('change', function() 
         if (direccionDestinoInfo) {
             direccionDestinoInfo.innerHTML = `<span style="color: #137333;">✓ Dirección de la oficina establecida automáticamente</span>`;
         }
+    } else if (this.value === 'Salida' && selectedVoluntarioId) {
+        // Para "Salida": Oficina -> Voluntario
+        const direccionOficina = "2042 Wooddale Drive, Suite 250";
+        ubicacionDesdeInput.value = direccionOficina;
+        
+        // Mostrar mensaje informativo para origen
+        if (direccionOrigenInfo) {
+            direccionOrigenInfo.innerHTML = `<span style="color: #137333;">✓ Dirección de la oficina establecida automáticamente</span>`;
+        }
+        
+        // Establecer la dirección del voluntario como destino
+        obtenerDireccionVoluntarioComoDestino(selectedVoluntarioId);
     } else {
-        // Limpiar mensajes informativos si no es "Entrada"
-        const direccionOrigenInfo = document.getElementById('direccion_origen_info');
-        const direccionDestinoInfo = document.getElementById('direccion_destino_info');
+        // Limpiar campos y mensajes informativos para otros tipos o cuando no hay voluntario seleccionado
+        if (this.value !== 'Entrada' && this.value !== 'Salida') {
+            ubicacionDesdeInput.value = '';
+            ubicacionHastaInput.value = '';
+        }
         
         if (direccionOrigenInfo) {
             direccionOrigenInfo.innerHTML = '';
