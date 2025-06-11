@@ -35,6 +35,7 @@ class VoluntarioController extends Controller
             'email' => 'required|string|email|max:255|unique:voluntarios',
             'telefono' => 'required|string|max:20',
             'ocupacion' => 'required|string|max:255',
+            'estado' => 'required|in:activo,inactivo',
         ]);
 
         Voluntario::create($request->all());
@@ -72,6 +73,7 @@ class VoluntarioController extends Controller
             'email' => 'required|string|email|max:255|unique:voluntarios,email,'.$id,
             'telefono' => 'required|string|max:20',
             'ocupacion' => 'required|string|max:255',
+            'estado' => 'required|in:activo,inactivo',
         ]);
 
         $voluntario = Voluntario::findOrFail($id);

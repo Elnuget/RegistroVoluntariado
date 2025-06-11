@@ -24,6 +24,7 @@ class Voluntario extends Model
         'email',
         'telefono',
         'ocupacion',
+        'estado',
     ];
 
     /**

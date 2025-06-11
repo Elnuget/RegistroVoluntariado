@@ -40,7 +40,16 @@
                         <tr>
                             <th>Ocupación:</th>
                             <td>{{ $voluntario->ocupacion }}</td>
-                        </tr>                        <tr>
+                        </tr>
+                        <tr>
+                            <th>Estado:</th>
+                            <td>
+                                <span class="badge bg-{{ $voluntario->estado == 'activo' ? 'success' : 'secondary' }}">
+                                    {{ ucfirst($voluntario->estado) }}
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
                             <th>Fecha de Registro:</th>
                             <td>{{ $voluntario->created_at ? $voluntario->created_at->format('d/m/Y H:i') : 'N/A' }}</td>
                         </tr>

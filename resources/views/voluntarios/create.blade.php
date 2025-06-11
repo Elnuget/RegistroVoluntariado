@@ -52,6 +52,15 @@
                         </div>
 
                         <div class="form-group mb-3">
+                            <label for="estado">Estado</label>
+                            <select class="form-control" id="estado" name="estado" required>
+                                <option value="">Seleccionar estado</option>
+                                <option value="activo" {{ old('estado') == 'activo' ? 'selected' : '' }}>Activo</option>
+                                <option value="inactivo" {{ old('estado') == 'inactivo' ? 'selected' : '' }}>Inactivo</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group mb-3">
                             <button type="submit" class="btn btn-primary">Registrar Voluntario</button>
                         </div>
                     </form>

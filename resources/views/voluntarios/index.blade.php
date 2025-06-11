@@ -27,6 +27,7 @@
                                 <th>Email</th>
                                 <th>Teléfono</th>
                                 <th>Ocupación</th>
+                                <th>Estado</th>
                                 <th>Acciones</th>
                             </tr>
                         </thead>
@@ -38,6 +39,11 @@
                                     <td>{{ $voluntario->email }}</td>
                                     <td>{{ $voluntario->telefono }}</td>
                                     <td>{{ $voluntario->ocupacion }}</td>
+                                    <td>
+                                        <span class="badge bg-{{ $voluntario->estado == 'activo' ? 'success' : 'secondary' }}">
+                                            {{ ucfirst($voluntario->estado) }}
+                                        </span>
+                                    </td>
                                     <td>
                                         <div class="btn-group" role="group">
                                             <a href="{{ route('voluntarios.show', $voluntario->id) }}" class="btn btn-info btn-sm">Ver</a>
@@ -51,7 +57,7 @@
                                     </td>
                                 </tr>                            @empty
                                 <tr>
-                                    <td colspan="7" class="text-center">No hay voluntarios registrados.</td>
+                                    <td colspan="8" class="text-center">No hay voluntarios registrados.</td>
                                 </tr>
                             @endforelse
                         </tbody>
