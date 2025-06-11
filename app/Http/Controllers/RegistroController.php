@@ -175,7 +175,7 @@ class RegistroController extends Controller
      */
     public function formulario()
     {
-        $voluntarios = Voluntario::all();
+        $voluntarios = Voluntario::where('estado', 'activo')->get();
         return view('registros.registro-modular', compact('voluntarios'));
     }
 
