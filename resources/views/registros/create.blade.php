@@ -50,7 +50,12 @@
 
                         <div class="form-group mb-3">
                             <label for="fecha">Fecha (MM/DD/YYYY)</label>
-                            <input type="date" class="form-control" id="fecha" name="fecha" value="{{ old('fecha') }}" required>
+                            <input type="text" class="form-control" id="fecha" name="fecha" 
+                                   value="{{ old('fecha') }}" 
+                                   placeholder="MM/DD/YYYY" 
+                                   pattern="^(0[1-9]|1[0-2])\/(0[1-9]|[12][0-9]|3[01])\/\d{4}$"
+                                   title="Formato: MM/DD/YYYY"
+                                   required>
                         </div>
 
                         <div class="form-group mb-3">
@@ -82,4 +87,30 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const fechaInput = document.getElementById('fecha');
+    
+    fechaInput.addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\D/g, ''); // Solo números
+        
+        if (value.length >= 2) {
+            value = value.substring(0, 2) + '/' + value.substring(2);
+        }
+        if (value.length >= 5) {
+            value = value.substring(0, 5) + '/' + value.substring(5, 9);
+        }
+        
+        e.target.value = value;
+    });
+    
+    fechaInput.addEventListener('keypress', function(e) {
+        const char = String.fromCharCode(e.which);
+        if (!/[0-9\/]/.test(char)) {
+            e.preventDefault();
+        }
+    });
+});
+</script>
 @endsection
