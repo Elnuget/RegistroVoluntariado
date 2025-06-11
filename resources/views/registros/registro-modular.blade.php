@@ -37,6 +37,7 @@
                                 <th style="padding: 12px; text-align: left; font-weight: 500; color: #5f6368;">Hora</th>
                                 <th style="padding: 12px; text-align: left; font-weight: 500; color: #5f6368;">Voluntario</th>
                                 <th style="padding: 12px; text-align: left; font-weight: 500; color: #5f6368;">Tipo</th>
+                                <th style="padding: 12px; text-align: left; font-weight: 500; color: #5f6368;">Actividad</th>
                                 <th style="padding: 12px; text-align: left; font-weight: 500; color: #5f6368;">Desde</th>
                                 <th style="padding: 12px; text-align: left; font-weight: 500; color: #5f6368;">Hasta</th>
                                 <th style="padding: 12px; text-align: right; font-weight: 500; color: #5f6368;">Millas</th>
@@ -68,6 +69,9 @@
                                                 Extra
                                             </span>
                                         @endif
+                                    </td>
+                                    <td style="padding: 12px; color: #202124; font-size: 13px; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                        {{ $registro->actividad ?? 'N/A' }}
                                     </td>
                                     <td style="padding: 12px; color: #5f6368; font-size: 13px; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                                         {{ $registro->ubicacion_desde }}

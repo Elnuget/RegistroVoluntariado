@@ -21,6 +21,7 @@ class Registro extends Model
     protected $fillable = [
         'voluntario_id',
         'tipo_actividad',
+        'actividad',
         'fecha',
         'hora',
         'ubicacion_desde',

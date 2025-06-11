@@ -98,6 +98,7 @@ class RegistroController extends Controller
         $request->validate([
             'voluntario_id' => 'required|exists:voluntarios,id',
             'tipo_actividad' => 'required|string|in:Entrada,Salida,Extra',
+            'actividad' => 'required|string|max:255',
             'fecha' => 'required|date',
             'hora' => 'required',
             'ubicacion_desde' => 'required|string|max:255',
@@ -144,6 +145,7 @@ class RegistroController extends Controller
         $request->validate([
             'voluntario_id' => 'required|exists:voluntarios,id',
             'tipo_actividad' => 'required|string|in:Entrada,Salida,Extra',
+            'actividad' => 'required|string|max:255',
             'fecha' => 'required|date',
             'hora' => 'required',
             'ubicacion_desde' => 'required|string|max:255',

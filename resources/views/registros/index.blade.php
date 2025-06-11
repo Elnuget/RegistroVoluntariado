@@ -25,6 +25,7 @@
                                 <th>Día</th>
                                 <th>Fecha</th>
                                 <th>Voluntario</th>
+                                <th>Actividad</th>
                                 <th>Entrada/Salida/Extra</th>
                                 <th>Ubicaciones y Millas</th>
                                 <th>Acciones</th>
@@ -38,6 +39,21 @@
                                     </td>
                                     <td>{{ $registro->fecha->format('m/d/Y') }}</td>
                                     <td>{{ $registro->voluntario->nombre_completo }}</td>
+                                    <td>
+                                        @if($registro->entrada)
+                                            <small class="d-block text-muted">{{ $registro->entrada->actividad ?? 'N/A' }}</small>
+                                        @endif
+                                        @if($registro->salida && $registro->salida->actividad != $registro->entrada?->actividad)
+                                            <small class="d-block text-muted">{{ $registro->salida->actividad ?? 'N/A' }}</small>
+                                        @endif
+                                        @if($registro->extras->count() > 0)
+                                            @foreach($registro->extras as $extra)
+                                                @if($extra->actividad != $registro->entrada?->actividad && $extra->actividad != $registro->salida?->actividad)
+                                                    <small class="d-block text-muted">{{ $extra->actividad ?? 'N/A' }}</small>
+                                                @endif
+                                            @endforeach
+                                        @endif
+                                    </td>
                                     <td>
                                         <!-- Entrada -->
                                         @if($registro->entrada)
@@ -265,7 +281,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="6" class="text-center">No hay registros disponibles.</td>
+                                    <td colspan="7" class="text-center">No hay registros disponibles.</td>
                                 </tr>
                             @endforelse
                         </tbody>

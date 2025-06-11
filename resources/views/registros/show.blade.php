@@ -38,6 +38,10 @@
                             </td>
                         </tr>
                         <tr>
+                            <th>Actividad:</th>
+                            <td>{{ $registro->actividad ?? 'N/A' }}</td>
+                        </tr>
+                        <tr>
                             <th>Fecha:</th>
                             <td>{{ $registro->fecha ? $registro->fecha->format('m/d/Y') : 'N/A' }}</td>
                         </tr>

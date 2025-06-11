@@ -49,6 +49,11 @@
                         </div>
 
                         <div class="form-group mb-3">
+                            <label for="actividad">Actividad</label>
+                            <input type="text" class="form-control" id="actividad" name="actividad" value="{{ old('actividad') }}" required>
+                        </div>
+
+                        <div class="form-group mb-3">
                             <label for="fecha">Fecha (MM/DD/YYYY)</label>
                             <input type="text" class="form-control" id="fecha" name="fecha" 
                                    value="{{ old('fecha') }}" 

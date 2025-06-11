@@ -23,3 +23,9 @@
         <option value="Extra" {{ old('tipo_actividad') == 'Extra' ? 'selected' : '' }}>Extra</option>
     </select>
 </div>
+
+<div class="form-question">
+    <label for="actividad" class="question-label required">Actividad</label>
+    <input type="text" class="form-input" id="actividad" name="actividad" 
+           value="{{ old('actividad') }}" placeholder="Descripción de la actividad" required>
+</div>
