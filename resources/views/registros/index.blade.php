@@ -22,47 +22,135 @@
                     <table class="table table-striped">
                         <thead>
                             <tr>
-                                <th>ID</th>
-                                <th>Voluntario</th>
-                                <th>Tipo Actividad</th>
+                                <th>Día</th>
                                 <th>Fecha</th>
-                                <th>Hora</th>
-                                <th>Desde</th>
-                                <th>Hasta</th>
-                                <th>Millas</th>
+                                <th>Voluntario</th>
+                                <th>Entrada/Salida/Extra</th>
+                                <th>Ubicaciones y Millas</th>
                                 <th>Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @forelse ($registros as $registro)
+                            @forelse ($registrosAgrupados as $registro)
                                 <tr>
-                                    <td>{{ $registro->id }}</td>
-                                    <td>{{ $registro->voluntario->nombre_completo }}</td>
                                     <td>
-                                        <span class="badge bg-{{ $registro->tipo_actividad == 'Entrada' ? 'success' : ($registro->tipo_actividad == 'Salida' ? 'primary' : 'warning') }}">
-                                            {{ $registro->tipo_actividad ?? 'N/A' }}
-                                        </span>
+                                        <strong>{{ ucfirst($registro->dia_semana) }}</strong>
                                     </td>
                                     <td>{{ $registro->fecha->format('m/d/Y') }}</td>
-                                    <td>{{ $registro->hora->format('h:i A') }}</td>
-                                    <td>{{ $registro->ubicacion_desde }}</td>
-                                    <td>{{ $registro->ubicacion_hasta }}</td>
-                                    <td>{{ number_format($registro->millas, 2) }}</td>
+                                    <td>{{ $registro->voluntario->nombre_completo }}</td>
                                     <td>
-                                        <div class="btn-group" role="group">
-                                            <a href="{{ route('registros.show', $registro->id) }}" class="btn btn-info btn-sm">Ver</a>
-                                            <a href="{{ route('registros.edit', $registro->id) }}" class="btn btn-warning btn-sm">Editar</a>
-                                            <form action="{{ route('registros.destroy', $registro->id) }}" method="POST" style="display: inline">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('¿Estás seguro de eliminar este registro?')">Eliminar</button>
-                                            </form>
+                                        <!-- Entrada -->
+                                        @if($registro->entrada)
+                                            <div class="mb-1">
+                                                <span class="badge bg-success">
+                                                    <i class="fas fa-sign-in-alt"></i> Entrada: {{ $registro->entrada->hora_formateada }}
+                                                </span>
+                                            </div>
+                                        @endif
+                                        
+                                        <!-- Salida -->
+                                        @if($registro->salida)
+                                            <div class="mb-1">
+                                                <span class="badge bg-primary">
+                                                    <i class="fas fa-sign-out-alt"></i> Salida: {{ $registro->salida->hora_formateada }}
+                                                </span>
+                                            </div>
+                                        @endif
+                                        
+                                        <!-- Extras -->
+                                        @if($registro->extras->count() > 0)
+                                            @foreach($registro->extras as $extra)
+                                                <div class="mb-1">
+                                                    <span class="badge bg-warning">
+                                                        <i class="fas fa-plus"></i> Extra: {{ $extra->hora_formateada }}
+                                                    </span>
+                                                </div>
+                                            @endforeach
+                                        @endif
+                                        
+                                        <!-- Horas Trabajadas -->
+                                        @if($registro->horas_totales > 0)
+                                            <div class="mt-2">
+                                                <small class="text-info fw-bold">
+                                                    <i class="fas fa-clock"></i> {{ number_format($registro->horas_totales, 2) }} horas trabajadas
+                                                </small>
+                                            </div>
+                                        @endif
+                                        
+                                        <!-- Si no hay registros -->
+                                        @if(!$registro->entrada && !$registro->salida && $registro->extras->count() == 0)
+                                            <span class="text-muted">Sin registros</span>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @if($registro->entrada)
+                                            <small class="text-success d-block">
+                                                <i class="fas fa-arrow-right"></i> <strong>Origen:</strong> {{ Str::limit($registro->ubicacion_entrada, 30) }}
+                                                @if($registro->entrada->millas > 0)
+                                                    <span class="badge bg-light text-dark ms-1">{{ number_format($registro->entrada->millas, 2) }} mi</span>
+                                                @endif
+                                            </small>
+                                        @endif
+                                        @if($registro->salida)
+                                            <small class="text-primary d-block">
+                                                <i class="fas fa-arrow-left"></i> <strong>Destino:</strong> {{ Str::limit($registro->ubicacion_salida, 30) }}
+                                                @if($registro->salida->millas > 0)
+                                                    <span class="badge bg-light text-dark ms-1">{{ number_format($registro->salida->millas, 2) }} mi</span>
+                                                @endif
+                                            </small>
+                                        @endif
+                                        @if($registro->extras->count() > 0)
+                                            @foreach($registro->extras as $extra)
+                                                <small class="text-warning d-block">
+                                                    <i class="fas fa-plus"></i> <strong>Extra:</strong> {{ Str::limit($extra->ubicacion_desde, 15) }} → {{ Str::limit($extra->ubicacion_hasta, 15) }}
+                                                    @if($extra->millas > 0)
+                                                        <span class="badge bg-light text-dark ms-1">{{ number_format($extra->millas, 2) }} mi</span>
+                                                    @endif
+                                                </small>
+                                            @endforeach
+                                        @endif
+                                        
+                                        <!-- Total de millas del día -->
+                                        @if($registro->millas_totales > 0)
+                                            <div class="mt-2 pt-2 border-top">
+                                                <small class="text-dark fw-bold d-block">
+                                                    <i class="fas fa-road"></i> <strong>Total del día:</strong> 
+                                                    <span class="badge bg-secondary">{{ number_format($registro->millas_totales, 2) }} millas</span>
+                                                </small>
+                                            </div>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        <div class="btn-group-vertical" role="group">
+                                            @if($registro->entrada)
+                                                <a href="{{ route('registros.show', $registro->entrada->id) }}" class="btn btn-info btn-sm mb-1" title="Ver Entrada">
+                                                    <i class="fas fa-eye"></i> Entrada
+                                                </a>
+                                                <a href="{{ route('registros.edit', $registro->entrada->id) }}" class="btn btn-warning btn-sm mb-1" title="Editar Entrada">
+                                                    <i class="fas fa-edit"></i> Entrada
+                                                </a>
+                                            @endif
+                                            @if($registro->salida)
+                                                <a href="{{ route('registros.show', $registro->salida->id) }}" class="btn btn-info btn-sm mb-1" title="Ver Salida">
+                                                    <i class="fas fa-eye"></i> Salida
+                                                </a>
+                                                <a href="{{ route('registros.edit', $registro->salida->id) }}" class="btn btn-warning btn-sm mb-1" title="Editar Salida">
+                                                    <i class="fas fa-edit"></i> Salida
+                                                </a>
+                                            @endif
+                                            @if($registro->extras->count() > 0)
+                                                @foreach($registro->extras as $extra)
+                                                    <a href="{{ route('registros.show', $extra->id) }}" class="btn btn-secondary btn-sm mb-1" title="Ver Extra">
+                                                        <i class="fas fa-eye"></i> Extra
+                                                    </a>
+                                                @endforeach
+                                            @endif
                                         </div>
                                     </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="9" class="text-center">No hay registros disponibles.</td>
+                                    <td colspan="6" class="text-center">No hay registros disponibles.</td>
                                 </tr>
                             @endforelse
                         </tbody>

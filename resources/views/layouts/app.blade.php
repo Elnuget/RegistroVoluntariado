@@ -9,6 +9,9 @@
 
     <!-- Bootstrap CSS only -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <!-- Custom Styles -->
     <style>
@@ -32,6 +35,32 @@
             color: #fff !important;
             font-weight: bold;
         }
+        
+        /* Estilos para la tabla de registros */
+        .table td {
+            vertical-align: middle;
+        }
+        
+        .btn-group-vertical .btn {
+            margin-bottom: 2px;
+        }
+        
+        .badge {
+            font-size: 0.75em;
+        }
+        
+        .badge.bg-light {
+            border: 1px solid #dee2e6;
+        }
+        
+        .border-top {
+            border-top: 1px solid #dee2e6 !important;
+        }
+        
+        .table-striped tbody tr:nth-of-type(odd) {
+            background-color: rgba(0,0,0,.02);
+        }
+        
         .content-container {
             padding: 20px 0;
         }

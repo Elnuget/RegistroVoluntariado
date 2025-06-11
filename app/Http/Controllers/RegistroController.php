@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Registro;
 use App\Models\Voluntario;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 
 class RegistroController extends Controller
 {
@@ -13,8 +14,70 @@ class RegistroController extends Controller
      */
     public function index()
     {
-        $registros = Registro::with('voluntario')->get();
-        return view('registros.index', compact('registros'));
+        // Obtener todos los registros con información del voluntario
+        $registros = Registro::with('voluntario')
+            ->orderBy('fecha', 'desc')
+            ->orderBy('voluntario_id')
+            ->orderBy('hora')
+            ->get();
+
+        // Agrupar registros por fecha y voluntario
+        $registrosAgrupados = $registros->groupBy(function($registro) {
+            return $registro->fecha->format('Y-m-d') . '_' . $registro->voluntario_id;
+        })->map(function($grupo) {
+            $primerRegistro = $grupo->first();
+            
+            // Separar registros por tipo
+            $entrada = $grupo->where('tipo_actividad', 'Entrada')->first();
+            $salida = $grupo->where('tipo_actividad', 'Salida')->first();
+            $extras = $grupo->where('tipo_actividad', 'Extra');
+            
+            // Calcular horas trabajadas con manejo de errores
+            $horasTotales = 0;
+            if ($entrada && $salida) {
+                try {
+                    // Obtener solo las horas y minutos como string
+                    $horaEntradaStr = is_string($entrada->hora) ? $entrada->hora : $entrada->hora->format('H:i:s');
+                    $horaSalidaStr = is_string($salida->hora) ? $salida->hora : $salida->hora->format('H:i:s');
+                    
+                    // Crear objetos Carbon desde las horas en la misma fecha
+                    $fechaBase = $primerRegistro->fecha;
+                    $horaEntrada = Carbon::createFromFormat('Y-m-d H:i:s', $fechaBase->format('Y-m-d') . ' ' . $horaEntradaStr);
+                    $horaSalida = Carbon::createFromFormat('Y-m-d H:i:s', $fechaBase->format('Y-m-d') . ' ' . $horaSalidaStr);
+                    
+                    // Si la hora de salida es menor que la de entrada, asumir que es del día siguiente
+                    if ($horaSalida->lt($horaEntrada)) {
+                        $horaSalida->addDay();
+                    }
+                    
+                    // Calcular diferencia en horas (salida - entrada)
+                    $horasTotales = $horaSalida->diffInMinutes($horaEntrada) / 60;
+                    
+                    // Asegurar que el resultado sea positivo
+                    $horasTotales = abs($horasTotales);
+                    
+                } catch (\Exception $e) {
+                    // Si hay error en el parsing, establecer horas como 0
+                    $horasTotales = 0;
+                    \Log::error('Error calculando horas: ' . $e->getMessage());
+                }
+            }
+            
+            return (object) [
+                'fecha' => $primerRegistro->fecha,
+                'dia_semana' => $primerRegistro->fecha->locale('es')->dayName,
+                'voluntario' => $primerRegistro->voluntario,
+                'entrada' => $entrada,
+                'salida' => $salida,
+                'extras' => $extras,
+                'horas_totales' => $horasTotales,
+                'ubicacion_entrada' => $entrada ? $entrada->ubicacion_desde : null,
+                'ubicacion_salida' => $salida ? $salida->ubicacion_hasta : null,
+                'millas_totales' => $grupo->sum('millas')
+            ];
+        })->sortByDesc('fecha');
+
+        return view('registros.index', compact('registrosAgrupados'));
     }
 
     /**
