@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('tipo');
             $table->string('ubicacion_desde');
             $table->string('ubicacion_hasta');
-            $table->decimal('millas', 8, 2);
+            $table->decimal('millas', 8, 2)->nullable();
             $table->timestamps();
             
             $table->foreign('voluntario_id')
