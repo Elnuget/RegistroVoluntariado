@@ -16,7 +16,7 @@ return new class extends Migration
             $table->unsignedBigInteger('voluntario_id');
             $table->date('fecha');
             $table->time('hora');
-            $table->string('tipo');
+            $table->string('tipo_actividad')->nullable();
             $table->string('ubicacion_desde');
             $table->string('ubicacion_hasta');
             $table->decimal('millas', 8, 2)->nullable();
