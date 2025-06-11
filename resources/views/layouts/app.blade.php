@@ -61,6 +61,39 @@
             background-color: rgba(0,0,0,.02);
         }
         
+        /* Estilos para modales */
+        .modal-body {
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+        
+        .modal-lg {
+            max-width: 900px;
+        }
+        
+        .table-bordered th,
+        .table-bordered td {
+            border: 1px solid #dee2e6;
+        }
+        
+        .table-light {
+            background-color: #f8f9fa;
+        }
+        
+        /* Estilos para botones en modales */
+        .modal .btn-group .btn {
+            margin-right: 2px;
+        }
+        
+        .modal .btn-group .btn:last-child {
+            margin-right: 0;
+        }
+        
+        .modal .btn-sm {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+        }
+        
         .content-container {
             padding: 20px 0;
         }

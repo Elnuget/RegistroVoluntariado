@@ -81,4 +81,39 @@ class Registro extends Model
             return $this->hora ?? '-';
         }
     }
+
+    /**
+     * Obtener la hora en formato H:i para inputs
+     */
+    public function getHoraInputAttribute()
+    {
+        try {
+            // Si la hora es null, devolver string vacío
+            if (!$this->hora) {
+                return '';
+            }
+            
+            // Si la hora es string en formato H:i:s, extraer H:i
+            if (is_string($this->hora)) {
+                if (strlen($this->hora) == 8) { // H:i:s
+                    return substr($this->hora, 0, 5); // Tomar solo H:i
+                } elseif (strlen($this->hora) == 5) { // H:i
+                    return $this->hora;
+                }
+                return $this->hora;
+            }
+            
+            // Si es objeto Carbon/datetime
+            if ($this->hora instanceof \Carbon\Carbon || $this->hora instanceof \DateTime) {
+                return $this->hora->format('H:i');
+            }
+            
+            // Fallback: intentar parsear como string
+            return \Carbon\Carbon::parse($this->hora)->format('H:i');
+            
+        } catch (\Exception $e) {
+            // Si todo falla, devolver string vacío
+            return '';
+        }
+    }
 }

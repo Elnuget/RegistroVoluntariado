@@ -56,7 +56,8 @@
 
                         <div class="form-group mb-3">
                             <label for="hora">Hora</label>
-                            <input type="time" class="form-control" id="hora" name="hora" value="{{ old('hora', $registro->hora->format('H:i')) }}" required>
+                            <input type="time" class="form-control" id="hora" name="hora" 
+                                   value="{{ old('hora', $registro->hora_input) }}" required>
                         </div>
 
                         <div class="form-group mb-3">

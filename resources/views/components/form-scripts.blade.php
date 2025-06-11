@@ -343,39 +343,43 @@ function updateSelection(visibleItems, selectedIndex) {
 }
 
 // Restaurar valor seleccionado si existe (para cuando hay errores de validación)
-@if(old('voluntario_id'))
+document.addEventListener('DOMContentLoaded', function() {
     const oldVoluntarioId = '{{ old('voluntario_id') }}';
-    const oldVoluntarioItem = document.querySelector(`[data-value="${oldVoluntarioId}"]`);
-    if (oldVoluntarioItem) {
-        voluntarioSearch.value = oldVoluntarioItem.textContent.trim();
-        voluntarioId.value = oldVoluntarioId;
-        oldVoluntarioItem.classList.add('selected');
-          // Restaurar configuración de ubicaciones basado en el tipo de actividad guardado
-        @if(old('tipo_actividad') == 'Entrada')
-            const direccionOrigenInfo = document.getElementById('direccion_origen_info');
-            const direccionDestinoInfo = document.getElementById('direccion_destino_info');
+    if (oldVoluntarioId) {
+        const oldVoluntarioItem = document.querySelector(`[data-value="${oldVoluntarioId}"]`);
+        if (oldVoluntarioItem) {
+            voluntarioSearch.value = oldVoluntarioItem.textContent.trim();
+            voluntarioId.value = oldVoluntarioId;
+            oldVoluntarioItem.classList.add('selected');
             
-            if (direccionOrigenInfo) {
-                direccionOrigenInfo.innerHTML = `<span style="color: #137333;">✓ Dirección del voluntario cargada automáticamente como origen</span>`;
+            // Restaurar configuración de ubicaciones basado en el tipo de actividad guardado
+            const oldTipoActividad = '{{ old('tipo_actividad') }}';
+            if (oldTipoActividad === 'Entrada') {
+                const direccionOrigenInfoElem = document.getElementById('direccion_origen_info');
+                const direccionDestinoInfoElem = document.getElementById('direccion_destino_info');
+                
+                if (direccionOrigenInfoElem) {
+                    direccionOrigenInfoElem.innerHTML = `<span style="color: #137333;">✓ Dirección del voluntario cargada automáticamente como origen</span>`;
+                }
+                
+                if (direccionDestinoInfoElem) {
+                    direccionDestinoInfoElem.innerHTML = `<span style="color: #137333;">✓ Dirección de la oficina establecida automáticamente</span>`;
+                }
+            } else if (oldTipoActividad === 'Salida') {
+                const direccionOrigenInfoElem = document.getElementById('direccion_origen_info');
+                const direccionDestinoInfoElem = document.getElementById('direccion_destino_info');
+                
+                if (direccionOrigenInfoElem) {
+                    direccionOrigenInfoElem.innerHTML = `<span style="color: #137333;">✓ Dirección de la oficina establecida automáticamente</span>`;
+                }
+                
+                if (direccionDestinoInfoElem) {
+                    direccionDestinoInfoElem.innerHTML = `<span style="color: #137333;">✓ Dirección del voluntario cargada automáticamente como destino</span>`;
+                }
             }
-            
-            if (direccionDestinoInfo) {
-                direccionDestinoInfo.innerHTML = `<span style="color: #137333;">✓ Dirección de la oficina establecida automáticamente</span>`;
-            }
-        @elseif(old('tipo_actividad') == 'Salida')
-            const direccionOrigenInfo = document.getElementById('direccion_origen_info');
-            const direccionDestinoInfo = document.getElementById('direccion_destino_info');
-            
-            if (direccionOrigenInfo) {
-                direccionOrigenInfo.innerHTML = `<span style="color: #137333;">✓ Dirección de la oficina establecida automáticamente</span>`;
-            }
-            
-            if (direccionDestinoInfo) {
-                direccionDestinoInfo.innerHTML = `<span style="color: #137333;">✓ Dirección del voluntario cargada automáticamente como destino</span>`;
-            }
-        @endif
+        }
     }
-@endif
+});
 
 // Función para obtener y establecer la dirección del voluntario como ubicación de origen
 async function obtenerDireccionVoluntarioComoOrigen(voluntarioId) {

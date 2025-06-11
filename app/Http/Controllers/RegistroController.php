@@ -6,6 +6,7 @@ use App\Models\Registro;
 use App\Models\Voluntario;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class RegistroController extends Controller
 {
@@ -59,7 +60,7 @@ class RegistroController extends Controller
                 } catch (\Exception $e) {
                     // Si hay error en el parsing, establecer horas como 0
                     $horasTotales = 0;
-                    \Log::error('Error calculando horas: ' . $e->getMessage());
+                    Log::error('Error calculando horas: ' . $e->getMessage());
                 }
             }
             
