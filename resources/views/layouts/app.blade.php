@@ -59,6 +59,9 @@
                         <li class="nav-item">
                             <a class="nav-link {{ request()->is('registros*') ? 'active' : '' }}" href="{{ route('registros.index') }}">Registros</a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->is('formulario*') ? 'active' : '' }}" href="{{ route('registros.formulario') }}">Formulario</a>
+                        </li>
                     </ul>
                 </div>
             </div>
