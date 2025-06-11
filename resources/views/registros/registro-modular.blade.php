@@ -35,7 +35,7 @@
                             <tr style="background-color: #f8f9fa; border-bottom: 2px solid #dee2e6;">
                                 <th style="padding: 12px; text-align: left; font-weight: 500; color: #5f6368;">Fecha</th>
                                 <th style="padding: 12px; text-align: left; font-weight: 500; color: #5f6368;">Hora</th>
-                                <th style="padding: 12px; text-align: left; font-weight: 500; color: #5f6368;">Voluntario</th>
+                                <th style="padding: 12px; text-align: left; font-weight: 500; color: #5f6368;">Nombre</th>
                                 <th style="padding: 12px; text-align: left; font-weight: 500; color: #5f6368;">Tipo</th>
                                 <th style="padding: 12px; text-align: left; font-weight: 500; color: #5f6368;">Actividad</th>
                                 <th style="padding: 12px; text-align: left; font-weight: 500; color: #5f6368;">Desde</th>

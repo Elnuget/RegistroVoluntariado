@@ -1,5 +1,5 @@
 <div class="form-question">
-    <label for="voluntario_id" class="question-label required">Voluntario</label>
+    <label for="voluntario_id" class="question-label required">Nombre</label>
     <div class="select-container">
         <input type="text" class="form-input" id="voluntario_search" 
                placeholder="Escriba para buscar o seleccione de la lista" autocomplete="off">
@@ -15,7 +15,7 @@
 </div>
 
 <div class="form-question">
-    <label for="tipo_actividad" class="question-label required">Tipo de Actividad</label>
+    <label for="tipo_actividad" class="question-label required">Horario</label>
     <select class="form-select" id="tipo_actividad" name="tipo_actividad" required>
         <option value="">Seleccione el tipo de actividad</option>
         <option value="Entrada" {{ old('tipo_actividad') == 'Entrada' ? 'selected' : '' }}>Entrada</option>

@@ -1,3 +1,3 @@
 <div class="form-footer">
-    Sistema de Registro de Voluntariado - {{ date('Y') }}
+    Sistema de Registro de Actividades - {{ date('Y') }}
 </div>
