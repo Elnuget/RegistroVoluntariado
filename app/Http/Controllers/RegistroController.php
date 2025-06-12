@@ -28,10 +28,14 @@ class RegistroController extends Controller
         })->map(function($grupo) {
             $primerRegistro = $grupo->first();
             
-            // Separar registros por tipo
-            $entrada = $grupo->where('tipo_actividad', 'Entrada')->first();
-            $salida = $grupo->where('tipo_actividad', 'Salida')->first();
+            // Separar registros por tipo (obtener TODOS los registros, no solo el primero)
+            $entradas = $grupo->where('tipo_actividad', 'Entrada');
+            $salidas = $grupo->where('tipo_actividad', 'Salida');
             $extras = $grupo->where('tipo_actividad', 'Extra');
+            
+            // Para compatibilidad con la vista actual, mantener entrada y salida como primer registro
+            $entrada = $entradas->first();
+            $salida = $salidas->first();
             
             // Calcular horas trabajadas con manejo de errores
             $horasTotales = 0;
@@ -71,6 +75,9 @@ class RegistroController extends Controller
                 'entrada' => $entrada,
                 'salida' => $salida,
                 'extras' => $extras,
+                // Nuevas colecciones con TODOS los registros de cada tipo
+                'entradas' => $entradas,
+                'salidas' => $salidas,
                 'horas_totales' => $horasTotales,
                 'ubicacion_entrada' => $entrada ? $entrada->ubicacion_desde : null,
                 'ubicacion_salida' => $salida ? $salida->ubicacion_hasta : null,
