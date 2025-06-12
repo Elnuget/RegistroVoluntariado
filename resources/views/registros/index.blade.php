@@ -1,9 +1,9 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container">
+<div class="container-fluid">
     <div class="row justify-content-center">
-        <div class="col-md-12">
+        <div class="col-12">
             <div class="card">
                 <div class="card-header">
                     <div class="d-flex justify-content-between align-items-center">
@@ -19,18 +19,19 @@
                         </div>
                     @endif
 
-                    <table class="table table-striped">
-                        <thead>
-                            <tr>
-                                <th>Día</th>
-                                <th>Fecha</th>
-                                <th>Voluntario</th>
-                                <th>Actividad</th>
-                                <th>Entrada/Salida/Extra</th>
-                                <th>Ubicaciones y Millas</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th style="min-width: 80px;">Día</th>
+                                    <th style="min-width: 100px;">Fecha</th>
+                                    <th style="min-width: 150px;">Voluntario</th>
+                                    <th style="min-width: 200px;">Actividades por Tipo</th>
+                                    <th style="min-width: 180px;">Horarios</th>
+                                    <th style="min-width: 300px;">Ubicaciones y Millas</th>
+                                    <th style="min-width: 120px;">Acciones</th>
+                                </tr>
+                            </thead>
                         <tbody>
                             @forelse ($registrosAgrupados as $registro)
                                 <tr>
@@ -40,26 +41,44 @@
                                     <td>{{ $registro->fecha->format('m/d/Y') }}</td>
                                     <td>{{ $registro->voluntario->nombre_completo }}</td>
                                     <td>
-                                        @php
-                                            $actividades = collect();
-                                            foreach($registro->entradas as $entrada) {
-                                                if($entrada->actividad) $actividades->push($entrada->actividad);
-                                            }
-                                            foreach($registro->salidas as $salida) {
-                                                if($salida->actividad) $actividades->push($salida->actividad);
-                                            }
-                                            foreach($registro->extras as $extra) {
-                                                if($extra->actividad) $actividades->push($extra->actividad);
-                                            }
-                                            $actividades = $actividades->unique();
-                                        @endphp
-                                        
-                                        @if($actividades->count() > 0)
-                                            @foreach($actividades as $actividad)
-                                                <small class="d-block text-muted">{{ $actividad }}</small>
+                                        <!-- Actividades de Entradas -->
+                                        @if($registro->entradas->count() > 0)
+                                            @foreach($registro->entradas as $entrada)
+                                                <div class="mb-1">
+                                                    <span class="badge bg-success bg-opacity-10 text-success border border-success">
+                                                        <i class="fas fa-sign-in-alt"></i> Entrada
+                                                    </span>
+                                                    <small class="d-block text-muted ms-2">{{ $entrada->actividad ?? 'N/A' }}</small>
+                                                </div>
                                             @endforeach
-                                        @else
-                                            <small class="d-block text-muted">N/A</small>
+                                        @endif
+                                        
+                                        <!-- Actividades de Salidas -->
+                                        @if($registro->salidas->count() > 0)
+                                            @foreach($registro->salidas as $salida)
+                                                <div class="mb-1">
+                                                    <span class="badge bg-primary bg-opacity-10 text-primary border border-primary">
+                                                        <i class="fas fa-sign-out-alt"></i> Salida
+                                                    </span>
+                                                    <small class="d-block text-muted ms-2">{{ $salida->actividad ?? 'N/A' }}</small>
+                                                </div>
+                                            @endforeach
+                                        @endif
+                                        
+                                        <!-- Actividades de Extras -->
+                                        @if($registro->extras->count() > 0)
+                                            @foreach($registro->extras as $extra)
+                                                <div class="mb-1">
+                                                    <span class="badge bg-warning bg-opacity-10 text-warning border border-warning">
+                                                        <i class="fas fa-plus"></i> Extra
+                                                    </span>
+                                                    <small class="d-block text-muted ms-2">{{ $extra->actividad ?? 'N/A' }}</small>
+                                                </div>
+                                            @endforeach
+                                        @endif
+                                        
+                                        @if($registro->entradas->count() == 0 && $registro->salidas->count() == 0 && $registro->extras->count() == 0)
+                                            <small class="text-muted">N/A</small>
                                         @endif
                                     </td>
                                     <td>
@@ -113,38 +132,64 @@
                                     <td>
                                         @if($registro->entradas->count() > 0)
                                             @foreach($registro->entradas as $entrada)
-                                                <small class="text-success d-block">
-                                                    <i class="fas fa-arrow-right"></i> <strong>Entrada:</strong> {{ Str::limit($entrada->ubicacion_desde, 20) }} → {{ Str::limit($entrada->ubicacion_hasta, 20) }}
+                                                <div class="mb-2 border-bottom pb-1">
+                                                    <small class="text-success d-block">
+                                                        <i class="fas fa-arrow-right"></i> <strong>Entrada:</strong>
+                                                    </small>
+                                                    <small class="text-muted ms-3">
+                                                        <strong>Desde:</strong> {{ $entrada->ubicacion_desde }}
+                                                    </small>
+                                                    <small class="text-muted ms-3 d-block">
+                                                        <strong>Hasta:</strong> {{ $entrada->ubicacion_hasta }}
+                                                    </small>
                                                     @if($entrada->millas > 0)
-                                                        <span class="badge bg-light text-dark ms-1">{{ number_format($entrada->millas, 2) }} mi</span>
+                                                        <span class="badge bg-light text-dark ms-3">{{ number_format($entrada->millas, 2) }} millas</span>
                                                     @endif
-                                                </small>
+                                                </div>
                                             @endforeach
                                         @endif
+                                        
                                         @if($registro->salidas->count() > 0)
                                             @foreach($registro->salidas as $salida)
-                                                <small class="text-primary d-block">
-                                                    <i class="fas fa-arrow-left"></i> <strong>Salida:</strong> {{ Str::limit($salida->ubicacion_desde, 20) }} → {{ Str::limit($salida->ubicacion_hasta, 20) }}
+                                                <div class="mb-2 border-bottom pb-1">
+                                                    <small class="text-primary d-block">
+                                                        <i class="fas fa-arrow-left"></i> <strong>Salida:</strong>
+                                                    </small>
+                                                    <small class="text-muted ms-3">
+                                                        <strong>Desde:</strong> {{ $salida->ubicacion_desde }}
+                                                    </small>
+                                                    <small class="text-muted ms-3 d-block">
+                                                        <strong>Hasta:</strong> {{ $salida->ubicacion_hasta }}
+                                                    </small>
                                                     @if($salida->millas > 0)
-                                                        <span class="badge bg-light text-dark ms-1">{{ number_format($salida->millas, 2) }} mi</span>
+                                                        <span class="badge bg-light text-dark ms-3">{{ number_format($salida->millas, 2) }} millas</span>
                                                     @endif
-                                                </small>
+                                                </div>
                                             @endforeach
                                         @endif
+                                        
                                         @if($registro->extras->count() > 0)
                                             @foreach($registro->extras as $extra)
-                                                <small class="text-warning d-block">
-                                                    <i class="fas fa-plus"></i> <strong>Extra:</strong> {{ Str::limit($extra->ubicacion_desde, 15) }} → {{ Str::limit($extra->ubicacion_hasta, 15) }}
+                                                <div class="mb-2 border-bottom pb-1">
+                                                    <small class="text-warning d-block">
+                                                        <i class="fas fa-plus"></i> <strong>Extra:</strong>
+                                                    </small>
+                                                    <small class="text-muted ms-3">
+                                                        <strong>Desde:</strong> {{ $extra->ubicacion_desde }}
+                                                    </small>
+                                                    <small class="text-muted ms-3 d-block">
+                                                        <strong>Hasta:</strong> {{ $extra->ubicacion_hasta }}
+                                                    </small>
                                                     @if($extra->millas > 0)
-                                                        <span class="badge bg-light text-dark ms-1">{{ number_format($extra->millas, 2) }} mi</span>
+                                                        <span class="badge bg-light text-dark ms-3">{{ number_format($extra->millas, 2) }} millas</span>
                                                     @endif
-                                                </small>
+                                                </div>
                                             @endforeach
                                         @endif
                                         
                                         <!-- Total de millas del día -->
                                         @if($registro->millas_totales > 0)
-                                            <div class="mt-2 pt-2 border-top">
+                                            <div class="mt-3 pt-2 border-top">
                                                 <small class="text-dark fw-bold d-block">
                                                     <i class="fas fa-road"></i> <strong>Total del día:</strong> 
                                                     <span class="badge bg-secondary">{{ number_format($registro->millas_totales, 2) }} millas</span>
