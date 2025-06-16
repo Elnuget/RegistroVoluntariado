@@ -11,3 +11,6 @@ php artisan view:clear
 php artisan cache:clear 
 php artisan migrate --seed
 php artisan migrate:fresh --seed
+
+comando unico laravel12:
+php artisan optimize:clear
