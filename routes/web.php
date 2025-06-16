@@ -22,3 +22,6 @@ Route::get('/api/voluntario-registros', [RegistroController::class, 'checkVolunt
 
 // Ruta API para obtener datos de un voluntario
 Route::get('/api/voluntario/{id}', [RegistroController::class, 'getVoluntarioInfo'])->name('api.voluntario.info');
+
+// Ruta API para obtener la dirección de un voluntario
+Route::get('/api/voluntario-direccion', [RegistroController::class, 'getVoluntarioDireccion'])->name('api.voluntario.direccion');

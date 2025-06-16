@@ -253,4 +253,28 @@ class RegistroController extends Controller
             })
         ]);
     }
+
+    /**
+     * API endpoint para obtener la dirección de un voluntario
+     */
+    public function getVoluntarioDireccion(Request $request)
+    {
+        $voluntarioId = $request->get('voluntario_id');
+        
+        if (!$voluntarioId) {
+            return response()->json(['error' => 'ID de voluntario requerido'], 400);
+        }
+
+        $voluntario = Voluntario::find($voluntarioId);
+        
+        if (!$voluntario) {
+            return response()->json(['error' => 'Voluntario no encontrado'], 404);
+        }
+
+        return response()->json([
+            'direccion' => $voluntario->direccion,
+            'nombre' => $voluntario->nombre_completo,
+            'telefono' => $voluntario->telefono
+        ]);
+    }
 }

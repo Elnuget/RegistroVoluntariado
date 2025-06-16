@@ -128,12 +128,24 @@ document.addEventListener('DOMContentLoaded', function() {
             dropdown.style.display = 'block';
             
             searchTimeout = setTimeout(() => {
-                const mockResults = [
-                    { main: query + ' Ave', secondary: 'Minneapolis, MN' },
-                    { main: query + ' St', secondary: 'Saint Paul, MN' },
-                    { main: query + ' Blvd', secondary: 'Duluth, MN' },
-                    { main: query + ' Dr', secondary: 'Rochester, MN' }
+                // Generar direcciones más realistas para Minnesota
+                const ciudades = [
+                    { nombre: 'Minneapolis', zip: '55401' },
+                    { nombre: 'Saint Paul', zip: '55102' },
+                    { nombre: 'Roseville', zip: '55113' },
+                    { nombre: 'Oakdale', zip: '55128' }
                 ];
+                
+                const mockResults = ciudades.map((ciudad, index) => {
+                    const numero = Math.floor(Math.random() * 9000) + 1000;
+                    const tipos = ['Avenue', 'Street', 'Court', 'Drive'];
+                    const tipo = tipos[index];
+                    
+                    return {
+                        main: `${numero} ${query} ${tipo}`,
+                        secondary: `${ciudad.nombre}, MN ${ciudad.zip}, USA`
+                    };
+                });
                 
                 const html = mockResults.map(result => `
                     <div class="autocomplete-item" onclick="selectBasicLocation('${result.main}', '${result.secondary}', '${inputId}', '${dropdownId}')">

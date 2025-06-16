@@ -24,15 +24,22 @@ class InteractiveRouteMap {
         // Ubicaciones actuales
         this.currentOrigin = null;
         this.currentDestination = null;
-    }
-
-    // Inicializar el mapa
+    }    // Inicializar el mapa con mejor manejo de errores
     async initialize() {
         if (this.isInitialized) return;
 
         try {
-            // Esperar a que Google Maps se cargue
+            console.log('🗺️ Iniciando carga del mapa...');
+            
+            // Verificar que tenemos API key
+            if (!window.GOOGLE_MAPS_API_KEY || window.GOOGLE_MAPS_API_KEY === 'TU_API_KEY_AQUI') {
+                throw new Error('API key de Google Maps no configurada');
+            }
+
+            // Esperar a que Google Maps se cargue con timeout más largo
             await this.waitForGoogleMaps();
+            
+            console.log('✅ Google Maps API cargada');
             
             // Configurar el mapa centrado en Minnesota
             const minnesotaCenter = { lat: 46.7296, lng: -94.6859 };
@@ -40,25 +47,30 @@ class InteractiveRouteMap {
             this.map = new google.maps.Map(this.mapElement, {
                 zoom: 7,
                 center: minnesotaCenter,
-                mapTypeControl: false,
-                streetViewControl: false,
-                fullscreenControl: false,
+                mapTypeControl: true,
+                streetViewControl: true,
+                fullscreenControl: true,
+                zoomControl: true,
                 styles: this.getMapStyles()
             });
+
+            console.log('✅ Mapa creado exitosamente');
 
             // Inicializar servicios de Google Maps
             this.directionsService = new google.maps.DirectionsService();
             this.directionsRenderer = new google.maps.DirectionsRenderer({
-                suppressMarkers: true, // Usaremos marcadores personalizados
+                suppressMarkers: false, // Mostrar marcadores por defecto también
                 polylineOptions: {
                     strokeColor: '#4285f4',
-                    strokeWeight: 4,
+                    strokeWeight: 5,
                     strokeOpacity: 0.8
                 }
             });
-            this.directionsRenderer.setMap(this.map);
             
+            this.directionsRenderer.setMap(this.map);
             this.geocoder = new google.maps.Geocoder();
+
+            console.log('✅ Servicios de Google Maps inicializados');
 
             // Ocultar indicador de carga
             if (this.loadingElement) {
@@ -66,32 +78,81 @@ class InteractiveRouteMap {
             }
 
             this.isInitialized = true;
-            console.log('Mapa interactivo inicializado correctamente');
+            console.log('🎉 Mapa interactivo inicializado correctamente');
             
             // Procesar ubicaciones existentes si las hay
-            this.checkExistingLocations();
+            setTimeout(() => {
+                this.checkExistingLocations();
+            }, 1000);
             
         } catch (error) {
-            console.error('Error al inicializar el mapa:', error);
-            this.showMapError();
+            console.error('❌ Error al inicializar el mapa:', error);
+            this.showMapError(error.message);
         }
-    }
-
-    // Esperar a que Google Maps esté disponible
+    }    // Esperar a que Google Maps esté disponible con mejor manejo
     waitForGoogleMaps() {
         return new Promise((resolve, reject) => {
+            let attempts = 0;
+            const maxAttempts = 100; // 10 segundos máximo
+            
             const checkGoogle = () => {
-                if (typeof google !== 'undefined' && google.maps) {
+                attempts++;
+                console.log(`🔍 Verificando Google Maps API... (intento ${attempts}/${maxAttempts})`);
+                
+                if (typeof google !== 'undefined' && google.maps && google.maps.Map) {
+                    console.log('✅ Google Maps API disponible');
                     resolve();
+                } else if (attempts >= maxAttempts) {
+                    console.error('❌ Timeout esperando Google Maps API');
+                    reject(new Error('Timeout esperando Google Maps API. Verifica tu conexión a internet y la API key.'));
                 } else {
                     setTimeout(checkGoogle, 100);
                 }
             };
-            checkGoogle();
             
-            // Timeout después de 10 segundos
-            setTimeout(() => reject(new Error('Timeout esperando Google Maps')), 10000);
+            // Intentar cargar la API si no está disponible
+            if (typeof google === 'undefined') {
+                console.log('📡 Cargando Google Maps API...');
+                this.loadGoogleMapsAPIManually();
+            }
+            
+            checkGoogle();
         });
+    }
+
+    // Cargar Google Maps API manualmente si no está disponible
+    loadGoogleMapsAPIManually() {
+        // Verificar si ya hay un script cargándose
+        if (document.querySelector('script[src*="maps.googleapis.com"]')) {
+            console.log('📡 Google Maps API ya se está cargando...');
+            return;
+        }
+
+        const apiKey = window.GOOGLE_MAPS_API_KEY;
+        if (!apiKey || apiKey === 'TU_API_KEY_AQUI') {
+            console.error('❌ API key no configurada');
+            return;
+        }
+
+        const script = document.createElement('script');
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places,geometry&callback=initGoogleMapsCallback`;
+        script.async = true;
+        script.defer = true;
+        
+        script.onload = () => {
+            console.log('✅ Google Maps API cargada exitosamente');
+        };
+        
+        script.onerror = (error) => {
+            console.error('❌ Error cargando Google Maps API:', error);
+        };
+        
+        document.head.appendChild(script);
+        
+        // Callback global para cuando se carga la API
+        window.initGoogleMapsCallback = () => {
+            console.log('🎉 Google Maps API inicializada via callback');
+        };
     }
 
     // Estilos personalizados del mapa
@@ -140,29 +201,134 @@ class InteractiveRouteMap {
         } catch (error) {
             console.error('Error al actualizar destino:', error);
         }
+    }    // Geocodificar dirección con múltiples intentos y estrategias
+    geocodeAddress(address) {
+        return new Promise((resolve) => {
+            console.log(`🔍 Geocodificando: ${address}`);
+            
+            // Lista de estrategias de búsqueda
+            const searchStrategies = [
+                // 1. Dirección original
+                address,
+                // 2. Dirección normalizada
+                this.normalizeAddress(address),
+                // 3. Solo dirección sin apartamento
+                address.replace(/,?\s*(apt|apartment|unit|#)\s*\d+/gi, ''),
+                // 4. Agregar Minnesota si no está
+                address.includes('MN') ? address : `${address}, Minnesota`,
+                // 5. Simplificada (solo número, calle y ciudad)
+                this.simplifyAddress(address)
+            ];
+            
+            this.tryGeocodeStrategies(searchStrategies, 0, resolve);
+        });
     }
 
-    // Geocodificar dirección
-    geocodeAddress(address) {
-        return new Promise((resolve, reject) => {
-            this.geocoder.geocode(
-                { 
-                    address: address,
-                    componentRestrictions: { 
-                        country: 'US',
-                        administrativeArea: 'MN'
-                    }
+    // Intentar múltiples estrategias de geocodificación
+    tryGeocodeStrategies(strategies, index, resolve) {
+        if (index >= strategies.length) {
+            console.error(`❌ Todas las estrategias de geocodificación fallaron`);
+            resolve(null);
+            return;
+        }
+
+        const currentStrategy = strategies[index];
+        console.log(`🎯 Probando estrategia ${index + 1}/${strategies.length}: ${currentStrategy}`);
+
+        this.geocoder.geocode(
+            { 
+                address: currentStrategy,
+                componentRestrictions: { 
+                    country: 'US',
+                    administrativeArea: 'MN'
                 },
-                (results, status) => {
-                    if (status === 'OK' && results[0]) {
-                        resolve(results[0].geometry.location);
-                    } else {
-                        console.warn('Geocoding falló:', status);
-                        resolve(null);
-                    }
+                region: 'us'
+            },
+            (results, status) => {
+                if (status === 'OK' && results && results[0]) {
+                    console.log(`✅ Geocodificación exitosa (estrategia ${index + 1}): ${currentStrategy} → ${results[0].formatted_address}`);
+                    resolve(results[0].geometry.location);
+                } else {
+                    console.warn(`⚠️ Estrategia ${index + 1} falló: ${status}`);
+                    // Intentar siguiente estrategia
+                    setTimeout(() => {
+                        this.tryGeocodeStrategies(strategies, index + 1, resolve);
+                    }, 200); // Pequeña pausa entre intentos
                 }
-            );
+            }
+        );
+    }
+
+    // Simplificar dirección para búsqueda básica
+    simplifyAddress(address) {
+        // Extraer componentes básicos: número, calle, ciudad
+        const parts = address.split(',');
+        if (parts.length >= 2) {
+            const streetPart = parts[0].trim();
+            const cityPart = parts[1].trim();
+            return `${streetPart}, ${cityPart}, MN`;
+        }
+        return address;
+    }
+
+    // Normalizar dirección para mejor geocodificación
+    normalizeAddress(address) {
+        if (!address) return address;
+        
+        let normalized = address;
+        
+        // Correcciones específicas para direcciones de voluntarios
+        const corrections = {
+            // Abreviaciones comunes
+            'Apt ': 'Apartment ',
+            'apt ': 'Apartment ',
+            'St ': 'Street ',
+            'St.': 'Street',
+            'Ave ': 'Avenue ',
+            'Ave.': 'Avenue',
+            'Ct ': 'Court ',
+            'Ct.': 'Court',
+            'Dr ': 'Drive ',
+            'Dr.': 'Drive',
+            'Rd ': 'Road ',
+            'Rd.': 'Road',
+            'Blvd ': 'Boulevard ',
+            'Blvd.': 'Boulevard',
+            'Ln ': 'Lane ',
+            'Ln.': 'Lane',
+            
+            // Correcciones de estado y ciudades
+            'Mn': 'MN',
+            'mn': 'MN',
+            'Minnesota': 'MN',
+            'Saint Paul': 'St Paul',
+            'St. Paul': 'St Paul',
+            
+            // Direcciones específicas problemáticas de la DB
+            'lower 57th': 'Lower 57th Street',
+            'Rose Vista Ct': 'Rose Vista Court',
+            'Gentry Ave. N': 'Gentry Avenue North',
+            'Magnolia Ave E.': 'Magnolia Avenue East',
+            'Chicago Avenue,': 'Chicago Avenue',
+            'Clinton Ave S': 'Clinton Avenue South',
+            'Powers Avenue': 'Powers Avenue',
+            'Montgomery Ave': 'Montgomery Avenue',
+            'Hamilton St': 'Hamilton Street',
+            '73rd Ave N': '73rd Avenue North'
+        };
+        
+        // Aplicar correcciones
+        Object.keys(corrections).forEach(search => {
+            const replace = corrections[search];
+            normalized = normalized.replace(new RegExp(search, 'gi'), replace);
         });
+        
+        // Limpiar espacios extra y comas
+        normalized = normalized.replace(/\s+/g, ' ').trim();
+        normalized = normalized.replace(/,\s*,/g, ',');
+        normalized = normalized.replace(/,\s*$/, '');
+        
+        return normalized;
     }
 
     // Actualizar marcador de origen
@@ -307,19 +473,50 @@ class InteractiveRouteMap {
         if (destinoInput && destinoInput.value.trim()) {
             this.updateDestination(destinoInput.value.trim());
         }
+    }    // Mostrar error del mapa con información detallada
+    showMapError(errorMessage = 'Error desconocido') {
+        if (this.loadingElement) {
+            let errorHtml = `
+                <div style="text-align: center; padding: 20px;">
+                    <div style="font-size: 48px; margin-bottom: 8px;">⚠️</div>
+                    <div style="color: #d93025; font-weight: 500; margin-bottom: 8px;">Error cargando mapa</div>
+                    <div style="font-size: 12px; color: #666; margin-bottom: 12px;">${errorMessage}</div>
+            `;
+            
+            // Agregar botón de retry
+            errorHtml += `
+                    <button onclick="window.routeMap.retryInitialization()" 
+                            style="background: #1a73e8; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 12px;">
+                        🔄 Reintentar
+                    </button>
+                </div>
+            `;
+            
+            this.loadingElement.innerHTML = errorHtml;
+        }
     }
 
-    // Mostrar error del mapa
-    showMapError() {
+    // Método para reintentar inicialización
+    async retryInitialization() {
+        console.log('🔄 Reintentando inicialización del mapa...');
+        
         if (this.loadingElement) {
             this.loadingElement.innerHTML = `
                 <div style="text-align: center;">
-                    <div style="font-size: 48px; margin-bottom: 8px;">⚠️</div>
-                    <div>Error cargando mapa</div>
-                    <div style="font-size: 12px; color: #666; margin-top: 4px;">Verifica tu conexión</div>
+                    <div style="font-size: 48px; margin-bottom: 8px;">🗺️</div>
+                    <div>Reintentando carga del mapa...</div>
                 </div>
             `;
         }
+        
+        // Reset estado
+        this.isInitialized = false;
+        this.map = null;
+        
+        // Reintentar inicialización
+        setTimeout(() => {
+            this.initialize();
+        }, 1000);
     }
 
     // Limpiar mapa

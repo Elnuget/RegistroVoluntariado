@@ -67,49 +67,94 @@ class LocationAutocomplete {
             return;
         }        const request = {
             input: query,
-            types: ['geocode'], // Solo direcciones
+            types: ['street_address', 'route', 'intersection', 'political'], // Enfocado en direcciones específicas
             componentRestrictions: { 
                 country: 'us',
                 administrativeArea: 'MN' // Restringir a Minnesota
             },
-            // Bias adicional hacia Minnesota
+            // Bias adicional hacia Minnesota con mayor precisión
             locationBias: {
                 center: { lat: 46.7296, lng: -94.6859 }, // Centro de Minnesota
-                radius: 500000 // Radio en metros (500km)
-            }
-        };
-
-        this.service.getPlacePredictions(request, (predictions, status) => {
+                radius: 200000 // Radio más específico (200km)
+            },
+            // Configuración adicional para más detalles
+            fields: ['formatted_address', 'geometry', 'name', 'place_id', 'types', 'address_components'],
+            sessionToken: new google.maps.places.AutocompleteSessionToken(),
+            // Configuración adicional para direcciones específicas
+            strictbounds: false, // No restringir estrictamente, pero dar preferencia
+            region: 'us' // Región de Estados Unidos
+        };this.service.getPlacePredictions(request, (predictions, status) => {
             if (status === google.maps.places.PlacesServiceStatus.OK && predictions) {
-                const results = predictions.map(prediction => ({
-                    main: prediction.structured_formatting.main_text,
-                    secondary: prediction.structured_formatting.secondary_text,
-                    placeId: prediction.place_id,
-                    fullDescription: prediction.description
-                }));
+                const results = predictions.map(prediction => {
+                    // Extraer información más detallada
+                    const mainText = prediction.structured_formatting.main_text;
+                    const secondaryText = prediction.structured_formatting.secondary_text;
+                    
+                    // Crear descripción más completa
+                    let fullDescription = prediction.description;
+                    
+                    // Si es un negocio, incluir el tipo
+                    let businessType = '';
+                    if (prediction.types && prediction.types.length > 0) {
+                        const relevantTypes = prediction.types.filter(type => 
+                            !['establishment', 'point_of_interest', 'geocode'].includes(type)
+                        );
+                        if (relevantTypes.length > 0) {
+                            businessType = this.formatBusinessType(relevantTypes[0]);
+                        }
+                    }
+                    
+                    return {
+                        main: mainText,
+                        secondary: secondaryText,
+                        businessType: businessType,
+                        placeId: prediction.place_id,
+                        fullDescription: fullDescription,
+                        types: prediction.types
+                    };
+                });
                 callback(results);
             } else {
                 console.warn('Error en Places API:', status);
                 this.searchLocationsFallback(query, callback);
             }
         });
-    }    // Fallback con resultados simulados específicos de Minnesota
+    }    // Fallback con resultados simulados basados en direcciones reales de Minnesota
     searchLocationsFallback(query, callback) {
-        const mockResults = [
-            { main: query + ' Ave', secondary: 'Minneapolis, MN', placeId: 'mock1' },
-            { main: query + ' St', secondary: 'Saint Paul, MN', placeId: 'mock2' },
-            { main: query + ' Blvd', secondary: 'Duluth, MN', placeId: 'mock3' },
-            { main: query + ' Dr', secondary: 'Rochester, MN', placeId: 'mock4' },
-            { main: query + ' Rd', secondary: 'Bloomington, MN', placeId: 'mock5' }
+        // Crear direcciones más realistas basadas en las que tienes en la DB
+        const ciudadesMinnesota = [
+            { ciudad: 'Minneapolis', zip: '55401', condado: 'Hennepin County' },
+            { ciudad: 'Saint Paul', zip: '55102', condado: 'Ramsey County' },
+            { ciudad: 'Roseville', zip: '55113', condado: 'Ramsey County' },
+            { ciudad: 'Oakdale', zip: '55128', condado: 'Washington County' },
+            { ciudad: 'Eagan', zip: '55123', condado: 'Dakota County' },
+            { ciudad: 'Burnsville', zip: '55337', condado: 'Dakota County' },
+            { ciudad: 'Andover', zip: '55304', condado: 'Anoka County' },
+            { ciudad: 'Le Center', zip: '56057', condado: 'Le Sueur County' }
         ];
+        
+        const tiposVia = ['Avenue', 'Street', 'Road', 'Drive', 'Court', 'Lane', 'Boulevard'];
+        
+        const mockResults = ciudadesMinnesota.slice(0, 4).map((lugar, index) => {
+            const numeroVivienda = Math.floor(Math.random() * 9000) + 1000; // 1000-9999
+            const tipoVia = tiposVia[index % tiposVia.length];
+            const direccionCompleta = `${numeroVivienda} ${query} ${tipoVia}, ${lugar.ciudad}, MN ${lugar.zip}, USA`;
+            
+            return {
+                main: `${numeroVivienda} ${query} ${tipoVia}`,
+                secondary: `${lugar.ciudad}, MN ${lugar.zip}, USA`,
+                businessType: '',
+                placeId: `mock${index + 1}`,
+                fullDescription: direccionCompleta,
+                types: ['street_address']
+            };
+        });
         
         // Simular delay de red
         setTimeout(() => {
-            callback(mockResults.slice(0, 4));
+            callback(mockResults);
         }, 200);
-    }
-
-    // Obtener detalles de un lugar específico
+    }// Obtener detalles de un lugar específico con información completa
     async getPlaceDetails(placeId, callback) {
         if (!this.initialized || !this.service) {
             callback(null);
@@ -120,173 +165,129 @@ class LocationAutocomplete {
         
         service.getDetails({
             placeId: placeId,
-            fields: ['formatted_address', 'geometry', 'name']
+            fields: [
+                'formatted_address', 
+                'geometry', 
+                'name', 
+                'vicinity',
+                'address_components',
+                'types',
+                'business_status'
+            ]
         }, (place, status) => {
             if (status === google.maps.places.PlacesServiceStatus.OK) {
+                // Crear dirección más detallada
+                let detailedAddress = place.formatted_address;
+                
+                // Si es un negocio con nombre, incluirlo
+                if (place.name && place.name !== detailedAddress) {
+                    // Verificar si el nombre ya está en la dirección
+                    if (!detailedAddress.toLowerCase().includes(place.name.toLowerCase())) {
+                        detailedAddress = `${place.name}, ${detailedAddress}`;
+                    }
+                }
+                
                 callback({
-                    address: place.formatted_address,
+                    address: detailedAddress,
                     lat: place.geometry.location.lat(),
                     lng: place.geometry.location.lng(),
-                    name: place.name
+                    name: place.name,
+                    vicinity: place.vicinity,
+                    types: place.types,
+                    businessStatus: place.business_status
                 });
             } else {
+                console.warn('Error obteniendo detalles del lugar:', status);
                 callback(null);
             }
         });
     }
-}
 
-// Instancia global
-const locationAutocomplete = new LocationAutocomplete();
+    // Formatear tipos de negocios para mejor legibilidad
+    formatBusinessType(type) {
+        const typeMap = {
+            'restaurant': '🍴 Restaurante',
+            'gas_station': '⛽ Gasolinera',
+            'hospital': '🏥 Hospital',
+            'school': '🏫 Escuela',
+            'university': '🎓 Universidad',
+            'shopping_mall': '🛍️ Centro Comercial',
+            'store': '🏪 Tienda',
+            'bank': '🏦 Banco',
+            'pharmacy': '💊 Farmacia',
+            'gym': '💪 Gimnasio',
+            'park': '🌳 Parque',
+            'church': '⛪ Iglesia',
+            'library': '📚 Biblioteca',
+            'post_office': '📮 Oficina Postal',
+            'police': '👮 Policía',
+            'fire_station': '🚒 Bomberos',
+            'airport': '✈️ Aeropuerto',
+            'subway_station': '🚊 Estación Metro',
+            'bus_station': '🚌 Estación Autobús',
+            'lodging': '🏨 Hotel'
+        };
+        
+        return typeMap[type] || '';
+    }
 
-// Función para configurar autocompletado en inputs
-function setupGoogleLocationAutocomplete(inputId, dropdownId) {
-    const input = document.getElementById(inputId);
-    const dropdown = document.getElementById(dropdownId);
-    let searchTimeout;
-    let selectedIndex = -1;
-    
-    input.addEventListener('input', function() {
-        const query = this.value.trim();
+    // Normalizar dirección para mejor búsqueda
+    normalizeAddress(address) {
+        if (!address) return address;
         
-        clearTimeout(searchTimeout);
+        let normalized = address;
         
-        if (query.length < 3) {
-            hideDropdown();
-            return;
-        }
+        // Correcciones comunes para direcciones de Minnesota
+        const corrections = {
+            // Abreviaciones comunes
+            'Apt': 'Apartment',
+            'apt': 'Apartment', 
+            'St ': 'Street ',
+            'St.': 'Street',
+            'Ave ': 'Avenue ',
+            'Ave.': 'Avenue',
+            'Ct ': 'Court ',
+            'Ct.': 'Court',
+            'Dr ': 'Drive ',
+            'Dr.': 'Drive',
+            'Rd ': 'Road ',
+            'Rd.': 'Road',
+            'Blvd ': 'Boulevard ',
+            'Blvd.': 'Boulevard',
+            'Ln ': 'Lane ',
+            'Ln.': 'Lane',
+            
+            // Correcciones de ciudades de Minnesota
+            'Mn': 'MN',
+            'mn': 'MN',
+            'Minnesota': 'MN',
+            'Saint Paul': 'St Paul',
+            'St. Paul': 'St Paul',
+            
+            // Direcciones específicas problemáticas
+            'lower 57th': 'Lower 57th Street',
+            'Rose Vista Ct': 'Rose Vista Court',
+            'Gentry Ave. N': 'Gentry Avenue North',
+            'Magnolia Ave E.': 'Magnolia Avenue East',
+            'Chicago Avenue,': 'Chicago Avenue',
+            'Clinton Ave S': 'Clinton Avenue South',
+            'Powers Avenue': 'Powers Avenue',
+            'Montgomery Ave': 'Montgomery Avenue'
+        };
         
-        showLoading();
-        
-        searchTimeout = setTimeout(() => {
-            locationAutocomplete.searchLocations(query, (results) => {
-                displayResults(results, dropdown);
-            });
-        }, 300);
-    });
-    
-    input.addEventListener('keydown', function(e) {
-        const items = dropdown.querySelectorAll('.autocomplete-item');
-        
-        if (e.key === 'ArrowDown') {
-            e.preventDefault();
-            selectedIndex = Math.min(selectedIndex + 1, items.length - 1);
-            updateSelection(items);
-        } else if (e.key === 'ArrowUp') {
-            e.preventDefault();
-            selectedIndex = Math.max(selectedIndex - 1, -1);
-            updateSelection(items);
-        } else if (e.key === 'Enter') {
-            e.preventDefault();
-            if (selectedIndex >= 0 && items[selectedIndex]) {
-                selectLocationItem(items[selectedIndex], input, dropdown);
-            }
-        } else if (e.key === 'Escape') {
-            hideDropdown();
-        }
-    });
-    
-    // Cerrar dropdown al hacer click fuera
-    document.addEventListener('click', function(e) {
-        if (!input.contains(e.target) && !dropdown.contains(e.target)) {
-            hideDropdown();
-        }
-    });
-    
-    function showLoading() {
-        dropdown.innerHTML = '<div class="autocomplete-loading">🔍 Buscando ubicaciones...</div>';
-        dropdown.style.display = 'block';
-    }
-    
-    function hideDropdown() {
-        dropdown.style.display = 'none';
-        selectedIndex = -1;
-    }
-    
-    function updateSelection(items) {
-        items.forEach((item, index) => {
-            item.classList.toggle('selected', index === selectedIndex);
+        // Aplicar correcciones
+        Object.keys(corrections).forEach(search => {
+            const replace = corrections[search];
+            normalized = normalized.replace(new RegExp(search, 'gi'), replace);
         });
+        
+        // Limpiar espacios extra y comas mal ubicadas
+        normalized = normalized.replace(/\s+/g, ' ').trim();
+        normalized = normalized.replace(/,\s*,/g, ',');
+normalized = normalized.replace(/,\s*$/, '');
+        
+        return normalized;
     }
-    
-    function displayResults(results, dropdown) {
-        if (results.length === 0) {
-            dropdown.innerHTML = '<div class="autocomplete-loading">❌ No se encontraron ubicaciones</div>';
-            return;
-        }
-        
-        const html = results.map((result, index) => `
-            <div class="autocomplete-item" data-index="${index}" data-place-id="${result.placeId || ''}">
-                <div class="autocomplete-main">📍 ${result.main}</div>
-                <div class="autocomplete-secondary">${result.secondary || ''}</div>
-            </div>
-        `).join('');
-        
-        dropdown.innerHTML = html;
-        dropdown.style.display = 'block';
-        
-        // Agregar event listeners a los items
-        dropdown.querySelectorAll('.autocomplete-item').forEach(item => {
-            item.addEventListener('click', () => {
-                selectLocationItem(item, input, dropdown);
-            });
-        });
-    }
-    
-    function selectLocationItem(item, input, dropdown) {
-        const mainText = item.querySelector('.autocomplete-main').textContent.replace('📍 ', '');
-        const secondaryText = item.querySelector('.autocomplete-secondary').textContent;
-        const placeId = item.dataset.placeId;
-        
-        // Mostrar la dirección completa
-        if (secondaryText) {
-            input.value = mainText + ', ' + secondaryText;
-        } else {
-            input.value = mainText;
-        }
-        
-        hideDropdown();
-        
-        // Obtener detalles adicionales si hay placeId
-        if (placeId && placeId !== '') {
-            locationAutocomplete.getPlaceDetails(placeId, (details) => {
-                if (details) {
-                    console.log('Detalles del lugar:', details);
-                    // Aquí puedes actualizar coordenadas, calcular distancia, etc.
-                // Integración con el mapa
-                if (typeof window.routeMap !== 'undefined' && window.routeMap) {
-                    const inputElement = document.querySelector(`[data-place-id="${placeId}"]`).closest('.form-question').querySelector('input');
-                    if (inputElement) {
-                        const inputId = inputElement.id;
-                        if (inputId === 'ubicacion_desde') {
-                            window.routeMap.updateOrigin(details.address);
-                        } else if (inputId === 'ubicacion_hasta') {
-                            window.routeMap.updateDestination(details.address);
-                        }
-                    }
-                }
-                }
-            });
-        }
-          // Trigger change event
-        input.dispatchEvent(new Event('change', { bubbles: true }));
-        
-        // Notificar al mapa si está disponible
-        if (typeof window.routeMap !== 'undefined' && window.routeMap) {
-            if (inputId === 'ubicacion_desde') {
-                window.routeMap.updateOrigin(input.value);
-            } else if (inputId === 'ubicacion_hasta') {
-                window.routeMap.updateDestination(input.value);
-            }
-        }
-    }
-}
 
-// Inicializar cuando el DOM esté listo
-document.addEventListener('DOMContentLoaded', function() {
-    // Configurar autocompletado para ambos inputs
-    setupGoogleLocationAutocomplete('ubicacion_desde', 'dropdown_origen');
-    setupGoogleLocationAutocomplete('ubicacion_hasta', 'dropdown_destino');
-    
-    console.log('Location Autocomplete inicializado');
-});
+    // ...existing code...
+}

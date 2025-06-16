@@ -243,8 +243,24 @@
     <script>
         // Configuración de Google Maps API Key
         window.GOOGLE_MAPS_API_KEY = '{{ env('GOOGLE_MAPS_API_KEY', 'TU_API_KEY_AQUI') }}';
+        
+        // Debug info
+        console.log('🔧 API Key configurada:', window.GOOGLE_MAPS_API_KEY !== 'TU_API_KEY_AQUI' ? '✅ Sí' : '❌ No');
+        
+        // Callback global para Google Maps
+        window.initGoogleMaps = function() {
+            console.log('🎉 Google Maps callback ejecutado');
+        };
     </script>
+    
+    <!-- Cargar Google Maps API -->
+    <script async defer
+            src="https://maps.googleapis.com/maps/api/js?key={{ env('GOOGLE_MAPS_API_KEY', 'TU_API_KEY_AQUI') }}&libraries=places,geometry&callback=initGoogleMaps">
+    </script>
+    
+    <!-- Scripts de la aplicación -->
     <script src="{{ asset('js/location-autocomplete.js') }}"></script>
     <script src="{{ asset('js/interactive-route-map.js') }}"></script>
+    <script src="{{ asset('js/maps-debugger.js') }}"></script>
 </body>
 </html>

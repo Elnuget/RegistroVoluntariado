@@ -210,6 +210,9 @@ dropdownItems.forEach(item => {
 
         // Verificar registros y configurar tipo de actividad automáticamente
         checkAndSetTipoActividad(value);
+        
+        // Cargar dirección del voluntario automáticamente
+        loadVolunteerAddress(value);
     });
 });
 
@@ -430,6 +433,40 @@ async function obtenerDireccionVoluntarioComoDestino(voluntarioId) {
         }
     } catch (error) {
         console.error('Error al obtener la dirección del voluntario:', error);
+    }
+}
+
+// Función para cargar la dirección del voluntario y establecerla como origen
+async function loadVolunteerAddress(voluntarioId) {
+    if (!voluntarioId) return;
+    
+    try {
+        const response = await fetch(`/api/voluntario-direccion?voluntario_id=${voluntarioId}`);
+        const data = await response.json();
+        
+        if (response.ok && data.direccion) {
+            // Actualizar el campo de ubicación de origen con la dirección del voluntario
+            const ubicacionOrigenInput = document.getElementById('ubicacion_desde');
+            if (ubicacionOrigenInput) {
+                ubicacionOrigenInput.value = data.direccion;
+                
+                // Mostrar mensaje informativo
+                const direccionInfo = document.getElementById('direccion_origen_info');
+                if (direccionInfo) {
+                    direccionInfo.innerHTML = `<span style="color: #137333;">✓ Dirección del voluntario cargada automáticamente como origen</span>`;
+                }
+                
+                // Trigger change event para actualizar el mapa
+                ubicacionOrigenInput.dispatchEvent(new Event('change', { bubbles: true }));
+                
+                // Actualizar el mapa si está disponible
+                if (typeof window.routeMap !== 'undefined' && window.routeMap) {
+                    window.routeMap.updateOrigin(data.direccion);
+                }
+            }
+        }
+    } catch (error) {
+        console.error('Error al cargar dirección del voluntario:', error);
     }
 }
 
