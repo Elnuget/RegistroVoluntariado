@@ -248,51 +248,61 @@ async function checkAndSetTipoActividad(voluntarioId) {
             infoMessage.style.cssText = 'font-size: 12px; color: #5f6368; margin-top: 4px;';
             
             if (data.tiene_registros) {
-                infoMessage.innerHTML = `<span style="color: #1a73e8;">ℹ️ El voluntario ya tiene ${data.registros_count} registro(s) hoy. Se sugiere "Salida".</span>`;
-            } else {
+                if (data.es_hoy && data.tiene_entrada_hoy) {
+                    infoMessage.innerHTML = `<span style="color: #1a73e8;">ℹ️ El voluntario ya tiene entrada registrada hoy. Se sugiere "Salida".</span>`;
+                } else {
+                    infoMessage.innerHTML = `<span style="color: #1a73e8;">ℹ️ El voluntario ya tiene ${data.registros_count} registro(s) en esta fecha.</span>`;
+                }
+            } else if (data.es_hoy) {
                 infoMessage.innerHTML = `<span style="color: #137333;">✓ Primer registro del día. Se sugiere "Entrada".</span>`;
+            } else {
+                infoMessage.innerHTML = `<span style="color: #5f6368;">Seleccione el tipo de actividad para esta fecha.</span>`;
             }
               tipoActividadContainer.appendChild(infoMessage);
-              // Configurar ubicaciones basado en el tipo de actividad
-            if (data.tipo_sugerido === 'Entrada') {
-                // Para "Entrada": Voluntario -> Oficina
-                obtenerDireccionVoluntarioComoOrigen(voluntarioId);
-                
-                // También establecer la ubicación de destino como la oficina
-                const ubicacionHastaInput = document.getElementById('ubicacion_hasta');
-                const direccionDestinoInfo = document.getElementById('direccion_destino_info');
-                
-                // Dirección fija de la oficina
-                const direccionOficina = "2042 wooddale drive, suite 250 Avenue, Minneapolis, MN 55401, USA";
-                ubicacionHastaInput.value = direccionOficina;
-                
-                // Mostrar mensaje informativo
-                if (direccionDestinoInfo) {
-                    direccionDestinoInfo.innerHTML = `<span style="color: #137333;">✓ Dirección de la oficina establecida automáticamente</span>`;
+              
+              // Solo configurar ubicaciones automáticamente si es el día actual
+              if (data.es_hoy) {
+                // Configurar ubicaciones basado en el tipo de actividad
+                if (data.tipo_sugerido === 'Entrada') {
+                    // Para "Entrada": Voluntario -> Oficina
+                    obtenerDireccionVoluntarioComoOrigen(voluntarioId);
+                    
+                    // También establecer la ubicación de destino como la oficina
+                    const ubicacionHastaInput = document.getElementById('ubicacion_hasta');
+                    const direccionDestinoInfo = document.getElementById('direccion_destino_info');
+                    
+                    // Dirección fija de la oficina
+                    const direccionOficina = "2042 wooddale drive, suite 250 Avenue, Minneapolis, MN 55401, USA";
+                    ubicacionHastaInput.value = direccionOficina;
+                    
+                    // Mostrar mensaje informativo
+                    if (direccionDestinoInfo) {
+                        direccionDestinoInfo.innerHTML = `<span style="color: #137333;">✓ Dirección de la oficina establecida automáticamente</span>`;
+                    }
+                    
+                    // Actualizar el mapa con la dirección de la oficina como destino
+                    updateMapSafely('destination', direccionOficina);
+                } else if (data.tipo_sugerido === 'Salida') {
+                    // Para "Salida": Oficina -> Voluntario
+                    const ubicacionDesdeInput = document.getElementById('ubicacion_desde');
+                    const direccionOrigenInfo = document.getElementById('direccion_origen_info');
+                    
+                    // Dirección fija de la oficina como origen
+                    const direccionOficina = "2042 wooddale drive, suite 250 Avenue, Minneapolis, MN 55401, USA";
+                    ubicacionDesdeInput.value = direccionOficina;
+                    
+                    // Mostrar mensaje informativo para origen
+                    if (direccionOrigenInfo) {
+                        direccionOrigenInfo.innerHTML = `<span style="color: #137333;">✓ Dirección de la oficina establecida automáticamente</span>`;
+                    }
+                    
+                    // Actualizar el mapa con la dirección de la oficina como origen
+                    updateMapSafely('origin', direccionOficina);
+                    
+                    // Establecer la dirección del voluntario como destino
+                    obtenerDireccionVoluntarioComoDestino(voluntarioId);
                 }
-                
-                // Actualizar el mapa con la dirección de la oficina como destino
-                updateMapSafely('destination', direccionOficina);
-            } else if (data.tipo_sugerido === 'Salida') {
-                // Para "Salida": Oficina -> Voluntario
-                const ubicacionDesdeInput = document.getElementById('ubicacion_desde');
-                const direccionOrigenInfo = document.getElementById('direccion_origen_info');
-                
-                // Dirección fija de la oficina como origen
-                const direccionOficina = "2042 wooddale drive, suite 250 Avenue, Minneapolis, MN 55401, USA";
-                ubicacionDesdeInput.value = direccionOficina;
-                
-                // Mostrar mensaje informativo para origen
-                if (direccionOrigenInfo) {
-                    direccionOrigenInfo.innerHTML = `<span style="color: #137333;">✓ Dirección de la oficina establecida automáticamente</span>`;
-                }
-                
-                // Actualizar el mapa con la dirección de la oficina como origen
-                updateMapSafely('origin', direccionOficina);
-                
-                // Establecer la dirección del voluntario como destino
-                obtenerDireccionVoluntarioComoDestino(voluntarioId);
-            }
+              }
         } else {
             console.error('Error al verificar registros:', data.error);
         }

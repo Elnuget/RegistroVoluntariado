@@ -241,11 +241,22 @@ class RegistroController extends Controller
             ->whereDate('fecha', $fecha)
             ->get();
 
-        $tieneRegistros = $registrosEnFecha->count() > 0;
-        $tipoSugerido = $tieneRegistros ? 'Salida' : 'Entrada';
+        // Verificar si la fecha seleccionada es hoy
+        $esHoy = Carbon::parse($fecha)->isToday();
+        
+        // Verificar si hay registros de entrada específicamente
+        $tieneEntradaHoy = $registrosEnFecha->where('tipo_actividad', 'Entrada')->count() > 0;
+        
+        // Solo sugerir 'Entrada' automáticamente si es hoy y no hay entradas registradas
+        $tipoSugerido = 'Extra'; // Valor por defecto
+        if ($esHoy) {
+            $tipoSugerido = $tieneEntradaHoy ? 'Salida' : 'Entrada';
+        }
 
         return response()->json([
-            'tiene_registros' => $tieneRegistros,
+            'tiene_registros' => $registrosEnFecha->count() > 0,
+            'es_hoy' => $esHoy,
+            'tiene_entrada_hoy' => $tieneEntradaHoy,
             'tipo_sugerido' => $tipoSugerido,
             'registros_count' => $registrosEnFecha->count(),
             'registros' => $registrosEnFecha->map(function($registro) {
