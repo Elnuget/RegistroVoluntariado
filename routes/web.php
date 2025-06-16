@@ -25,3 +25,6 @@ Route::get('/api/voluntario/{id}', [RegistroController::class, 'getVoluntarioInf
 
 // Ruta API para obtener la dirección de un voluntario
 Route::get('/api/voluntario-direccion', [RegistroController::class, 'getVoluntarioDireccion'])->name('api.voluntario.direccion');
+
+// Ruta para exportar registros a Excel
+Route::get('/registros/export/excel', [RegistroController::class, 'exportarExcel'])->name('registros.export.excel');

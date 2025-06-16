@@ -8,7 +8,12 @@
                 <div class="card-header">
                     <div class="d-flex justify-content-between align-items-center">
                         <h3>Lista de Registros</h3>
-                        <a href="{{ route('registros.create') }}" class="btn btn-primary">Crear Nuevo Registro</a>
+                        <div>
+                            <a href="{{ route('registros.export.excel') }}" class="btn btn-success me-2">
+                                <i class="fas fa-file-excel"></i> Exportar a Excel
+                            </a>
+                            <a href="{{ route('registros.create') }}" class="btn btn-primary">Crear Nuevo Registro</a>
+                        </div>
                     </div>
                 </div>
 
