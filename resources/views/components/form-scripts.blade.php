@@ -263,26 +263,32 @@ async function checkAndSetTipoActividad(voluntarioId) {
                 const direccionDestinoInfo = document.getElementById('direccion_destino_info');
                 
                 // Dirección fija de la oficina
-                const direccionOficina = "2042 Wooddale Drive, Suite 250";
+                const direccionOficina = "2042 wooddale drive, suite 250 Avenue, Minneapolis, MN 55401, USA";
                 ubicacionHastaInput.value = direccionOficina;
                 
                 // Mostrar mensaje informativo
                 if (direccionDestinoInfo) {
                     direccionDestinoInfo.innerHTML = `<span style="color: #137333;">✓ Dirección de la oficina establecida automáticamente</span>`;
                 }
+                
+                // Actualizar el mapa con la dirección de la oficina como destino
+                updateMapSafely('destination', direccionOficina);
             } else if (data.tipo_sugerido === 'Salida') {
                 // Para "Salida": Oficina -> Voluntario
                 const ubicacionDesdeInput = document.getElementById('ubicacion_desde');
                 const direccionOrigenInfo = document.getElementById('direccion_origen_info');
                 
                 // Dirección fija de la oficina como origen
-                const direccionOficina = "2042 Wooddale Drive, Suite 250";
+                const direccionOficina = "2042 wooddale drive, suite 250 Avenue, Minneapolis, MN 55401, USA";
                 ubicacionDesdeInput.value = direccionOficina;
                 
                 // Mostrar mensaje informativo para origen
                 if (direccionOrigenInfo) {
                     direccionOrigenInfo.innerHTML = `<span style="color: #137333;">✓ Dirección de la oficina establecida automáticamente</span>`;
                 }
+                
+                // Actualizar el mapa con la dirección de la oficina como origen
+                updateMapSafely('origin', direccionOficina);
                 
                 // Establecer la dirección del voluntario como destino
                 obtenerDireccionVoluntarioComoDestino(voluntarioId);
@@ -402,6 +408,9 @@ async function obtenerDireccionVoluntarioComoOrigen(voluntarioId) {
             if (direccionInfo) {
                 direccionInfo.innerHTML = `<span style="color: #137333;">✓ Dirección del voluntario cargada automáticamente como origen</span>`;
             }
+            
+            // Actualizar el mapa con la dirección del voluntario como origen
+            updateMapSafely('origin', voluntario.direccion);
         } else {
             console.error('Error al obtener información del voluntario:', data.error);
         }
@@ -428,6 +437,9 @@ async function obtenerDireccionVoluntarioComoDestino(voluntarioId) {
             if (direccionInfo) {
                 direccionInfo.innerHTML = `<span style="color: #137333;">✓ Dirección del voluntario cargada automáticamente como destino</span>`;
             }
+            
+            // Actualizar el mapa con la dirección del voluntario como destino
+            updateMapSafely('destination', voluntario.direccion);
         } else {
             console.error('Error al obtener información del voluntario:', data.error);
         }
@@ -460,9 +472,7 @@ async function loadVolunteerAddress(voluntarioId) {
                 ubicacionOrigenInput.dispatchEvent(new Event('change', { bubbles: true }));
                 
                 // Actualizar el mapa si está disponible
-                if (typeof window.routeMap !== 'undefined' && window.routeMap) {
-                    window.routeMap.updateOrigin(data.direccion);
-                }
+                updateMapSafely('origin', data.direccion);
             }
         }
     } catch (error) {
@@ -483,22 +493,28 @@ document.getElementById('tipo_actividad').addEventListener('change', function() 
         obtenerDireccionVoluntarioComoOrigen(selectedVoluntarioId);
         
         // Establecer la ubicación de destino como la oficina
-        const direccionOficina = "2042 Wooddale Drive, Suite 250";
+        const direccionOficina = "2042 wooddale drive, suite 250 Avenue, Minneapolis, MN 55401, USA";
         ubicacionHastaInput.value = direccionOficina;
         
         // Mostrar mensaje informativo
         if (direccionDestinoInfo) {
             direccionDestinoInfo.innerHTML = `<span style="color: #137333;">✓ Dirección de la oficina establecida automáticamente</span>`;
         }
+        
+        // Actualizar el mapa con la dirección de la oficina como destino
+        updateMapSafely('destination', direccionOficina);
     } else if (this.value === 'Salida' && selectedVoluntarioId) {
         // Para "Salida": Oficina -> Voluntario
-        const direccionOficina = "2042 Wooddale Drive, Suite 250";
+        const direccionOficina = "2042 wooddale drive, suite 250 Avenue, Minneapolis, MN 55401, USA";
         ubicacionDesdeInput.value = direccionOficina;
         
         // Mostrar mensaje informativo para origen
         if (direccionOrigenInfo) {
             direccionOrigenInfo.innerHTML = `<span style="color: #137333;">✓ Dirección de la oficina establecida automáticamente</span>`;
         }
+        
+        // Actualizar el mapa con la dirección de la oficina como origen
+        updateMapSafely('origin', direccionOficina);
         
         // Establecer la dirección del voluntario como destino
         obtenerDireccionVoluntarioComoDestino(selectedVoluntarioId);
@@ -518,5 +534,36 @@ document.getElementById('tipo_actividad').addEventListener('change', function() 
         }
     }
 });
+
+// Función auxiliar para actualizar el mapa de manera segura
+function updateMapSafely(action, address) {
+    // Verificar que el mapa esté disponible y inicializado
+    if (typeof window.routeMap !== 'undefined' && window.routeMap && window.routeMap.isInitialized) {
+        try {
+            if (action === 'origin') {
+                window.routeMap.updateOrigin(address);
+            } else if (action === 'destination') {
+                window.routeMap.updateDestination(address);
+            }
+        } catch (error) {
+            console.warn('Error al actualizar el mapa:', error);
+        }
+    } else {
+        // Si el mapa no está listo, intentar después de un breve delay
+        setTimeout(() => {
+            if (typeof window.routeMap !== 'undefined' && window.routeMap && window.routeMap.isInitialized) {
+                try {
+                    if (action === 'origin') {
+                        window.routeMap.updateOrigin(address);
+                    } else if (action === 'destination') {
+                        window.routeMap.updateDestination(address);
+                    }
+                } catch (error) {
+                    console.warn('Error al actualizar el mapa (segundo intento):', error);
+                }
+            }
+        }, 1000);
+    }
+}
 </script>
 @endpush
