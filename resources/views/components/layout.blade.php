@@ -239,11 +239,12 @@
     
     @stack('scripts')
     
-    <!-- Script de autocompletado de ubicaciones -->
+    <!-- Scripts de ubicaciones y mapas -->
     <script>
-        // Configuración de Google Maps API Key (cámbiala por tu API key real)
+        // Configuración de Google Maps API Key
         window.GOOGLE_MAPS_API_KEY = '{{ env('GOOGLE_MAPS_API_KEY', 'TU_API_KEY_AQUI') }}';
     </script>
     <script src="{{ asset('js/location-autocomplete.js') }}"></script>
+    <script src="{{ asset('js/interactive-route-map.js') }}"></script>
 </body>
 </html>

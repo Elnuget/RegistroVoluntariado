@@ -253,12 +253,32 @@ function setupGoogleLocationAutocomplete(inputId, dropdownId) {
                 if (details) {
                     console.log('Detalles del lugar:', details);
                     // Aquí puedes actualizar coordenadas, calcular distancia, etc.
+                // Integración con el mapa
+                if (typeof window.routeMap !== 'undefined' && window.routeMap) {
+                    const inputElement = document.querySelector(`[data-place-id="${placeId}"]`).closest('.form-question').querySelector('input');
+                    if (inputElement) {
+                        const inputId = inputElement.id;
+                        if (inputId === 'ubicacion_desde') {
+                            window.routeMap.updateOrigin(details.address);
+                        } else if (inputId === 'ubicacion_hasta') {
+                            window.routeMap.updateDestination(details.address);
+                        }
+                    }
+                }
                 }
             });
         }
-        
-        // Trigger change event
+          // Trigger change event
         input.dispatchEvent(new Event('change', { bubbles: true }));
+        
+        // Notificar al mapa si está disponible
+        if (typeof window.routeMap !== 'undefined' && window.routeMap) {
+            if (inputId === 'ubicacion_desde') {
+                window.routeMap.updateOrigin(input.value);
+            } else if (inputId === 'ubicacion_hasta') {
+                window.routeMap.updateDestination(input.value);
+            }
+        }
     }
 }
 

@@ -21,16 +21,22 @@
         </div>
     </div>
 
-    <!-- Columna derecha: Mapa -->
-    <div style="height: 300px; border: 2px solid #dadce0; border-radius: 8px; background-color: #f8f9fa; display: flex; align-items: center; justify-content: center;">
+    <!-- Columna derecha: Mapa interactivo -->
+    <div style="height: 300px; border: 2px solid #dadce0; border-radius: 8px; background-color: #f8f9fa; position: relative;">
         <div id="map" style="width: 100%; height: 100%; border-radius: 6px;">
-            <!-- Aquí se mostrará el mapa -->
-            <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #5f6368; font-size: 14px;">
-                <div style="text-align: center;">
-                    <div style="font-size: 48px; margin-bottom: 8px;">🗺️</div>
-                    <div>Mapa se cargará aquí</div>
-                </div>
-            </div>
+            <!-- El mapa se cargará aquí -->
+        </div>
+        
+        <!-- Indicador de carga del mapa -->
+        <div id="map-loading" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: flex; align-items: center; justify-content: center; flex-direction: column; color: #5f6368; font-size: 14px;">
+            <div style="font-size: 48px; margin-bottom: 8px;">🗺️</div>
+            <div>Cargando mapa...</div>
+        </div>
+        
+        <!-- Información de la ruta -->
+        <div id="route-info" style="position: absolute; top: 10px; right: 10px; background: rgba(255,255,255,0.95); padding: 8px 12px; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); font-size: 12px; color: #202124; display: none;">
+            <div id="route-distance" style="font-weight: 500;"></div>
+            <div id="route-duration" style="color: #5f6368;"></div>
         </div>
     </div>
 </div>
@@ -156,6 +162,15 @@ document.addEventListener('DOMContentLoaded', function() {
         input.value = main + ', ' + secondary;
         dropdown.style.display = 'none';
         input.dispatchEvent(new Event('change'));
+        
+        // Integrar con el mapa si está disponible
+        if (typeof window.routeMap !== 'undefined' && window.routeMap) {
+            if (inputId === 'ubicacion_desde') {
+                window.routeMap.updateOrigin(input.value);
+            } else if (inputId === 'ubicacion_hasta') {
+                window.routeMap.updateDestination(input.value);
+            }
+        }
     };
 });
 </script>
