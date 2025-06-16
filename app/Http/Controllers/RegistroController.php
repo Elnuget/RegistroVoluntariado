@@ -9,6 +9,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use App\Exports\RegistrosExport;
 use Rap2hpoutre\FastExcel\FastExcel;
+use Rap2hpoutre\FastExcel\SheetCollection;
 use Maatwebsite\Excel\Facades\Excel;
 
 class RegistroController extends Controller
@@ -362,7 +363,13 @@ class RegistroController extends Controller
         // Generar el nombre del archivo
         $fileName = 'Registros_Voluntariado_' . Carbon::now()->format('Y-m-d_H-i-s') . '.xlsx';
         
-        // Exportar usando fast-excel
-        return (new FastExcel($exportObj->collection()))->download($fileName);
+        // Obtener las hojas para cada voluntario
+        $sheetsData = $exportObj->sheets();
+        
+        // Crear una colección de hojas para FastExcel
+        $sheetCollection = new SheetCollection($sheetsData);
+        
+        // Exportar usando fast-excel con múltiples hojas
+        return (new FastExcel($sheetCollection))->download($fileName);
     }
 }

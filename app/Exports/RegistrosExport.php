@@ -13,22 +13,67 @@ class RegistrosExport
     public function __construct($registrosAgrupados)
     {
         $this->registrosAgrupados = $registrosAgrupados;
-    }
-
-    /**
-     * Prepara los datos para la exportación
+    }    /**
+     * Prepara los datos para la exportación por voluntario
      * 
-     * @return Collection
+     * @return array
      */
-    public function collection()
+    public function sheets()
+    {
+        // Agrupar registros por voluntario
+        $registrosPorVoluntario = $this->registrosAgrupados->groupBy(function($registro) {
+            return $registro->voluntario->id;
+        });
+        
+        $sheets = [];
+        
+        foreach ($registrosPorVoluntario as $voluntarioId => $registros) {
+            // Nombre del voluntario para la hoja
+            $nombreVoluntario = $registros->first()->voluntario->nombre_completo;
+            
+            // Limitar el nombre a 31 caracteres (límite de Excel para nombres de hojas)
+            $nombreHoja = $this->formatSheetName($nombreVoluntario);
+            
+            // Crear colección de datos para esta hoja
+            $datos = $this->prepararDatosVoluntario($registros);
+            
+            $sheets[$nombreHoja] = $datos;
+        }
+        
+        return $sheets;
+    }
+    
+    /**
+     * Formatea el nombre de la hoja para que sea válido en Excel
+     */
+    private function formatSheetName($name)
+    {
+        // Reemplazar caracteres inválidos para nombres de hojas en Excel
+        $invalidChars = ['/', '\\', '*', '[', ']', ':', '?'];
+        $name = str_replace($invalidChars, '', $name);
+        
+        // Limitar a 31 caracteres (límite de Excel)
+        $name = substr($name, 0, 31);
+        
+        // Asegurar que el nombre no está vacío
+        if (empty($name)) {
+            $name = 'Hoja';
+        }
+        
+        return $name;
+    }
+    
+    /**
+     * Prepara los datos para un voluntario específico
+     */
+    private function prepararDatosVoluntario($registros)
     {
         $data = collect();
         
-        foreach ($this->registrosAgrupados as $registro) {
+        foreach ($registros as $registro) {
             $row = [
                 'DAY' => ucfirst($registro->dia_semana),
                 'DATE' => $registro->fecha->format('m/d/Y'),
-                'VOLUNTARIO' => $registro->voluntario->nombre_completo,
                 'REGULAR HOURS' => $this->formatHorariosSimple($registro),
                 'TOTAL HOURS' => number_format($registro->horas_totales, 2),
                 'MILES' => number_format($registro->millas_totales, 2),
