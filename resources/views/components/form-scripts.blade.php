@@ -457,22 +457,38 @@ async function loadVolunteerAddress(voluntarioId) {
         const data = await response.json();
         
         if (response.ok && data.direccion) {
-            // Actualizar el campo de ubicación de origen con la dirección del voluntario
-            const ubicacionOrigenInput = document.getElementById('ubicacion_desde');
-            if (ubicacionOrigenInput) {
-                ubicacionOrigenInput.value = data.direccion;
-                
-                // Mostrar mensaje informativo
-                const direccionInfo = document.getElementById('direccion_origen_info');
-                if (direccionInfo) {
-                    direccionInfo.innerHTML = `<span style="color: #137333;">✓ Dirección del voluntario cargada automáticamente como origen</span>`;
+            // Determinar tipo de actividad actual
+            const tipoActividadSelect = document.getElementById('tipo_actividad');
+            const tipo = tipoActividadSelect ? tipoActividadSelect.value : null;
+            
+            if (tipo === 'Salida') {
+                // Para salida, establecer dirección como destino
+                const ubicacionHastaInput = document.getElementById('ubicacion_hasta');
+                if (ubicacionHastaInput) {
+                    ubicacionHastaInput.value = data.direccion;
+                    // Mostrar mensaje informativo
+                    const direccionInfo = document.getElementById('direccion_destino_info');
+                    if (direccionInfo) {
+                        direccionInfo.innerHTML = `<span style=\"color: #137333;\">✓ Dirección del voluntario cargada automáticamente como destino</span>`;
+                    }
+                    // Disparar evento change para actualizar el mapa
+                    ubicacionHastaInput.dispatchEvent(new Event('change', { bubbles: true }));
+                    updateMapSafely('destination', data.direccion);
                 }
-                
-                // Trigger change event para actualizar el mapa
-                ubicacionOrigenInput.dispatchEvent(new Event('change', { bubbles: true }));
-                
-                // Actualizar el mapa si está disponible
-                updateMapSafely('origin', data.direccion);
+            } else {
+                // Para entrada u otros, establecer dirección como origen
+                const ubicacionOrigenInput = document.getElementById('ubicacion_desde');
+                if (ubicacionOrigenInput) {
+                    ubicacionOrigenInput.value = data.direccion;
+                    // Mostrar mensaje informativo
+                    const direccionInfo = document.getElementById('direccion_origen_info');
+                    if (direccionInfo) {
+                        direccionInfo.innerHTML = `<span style=\"color: #137333;\">✓ Dirección del voluntario cargada automáticamente como origen</span>`;
+                    }
+                    // Disparar evento change para actualizar el mapa
+                    ubicacionOrigenInput.dispatchEvent(new Event('change', { bubbles: true }));
+                    updateMapSafely('origin', data.direccion);
+                }
             }
         }
     } catch (error) {

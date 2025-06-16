@@ -579,6 +579,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     console.log('Sistema de mapas y rutas inicializado');
+    // Exponer mapa a nivel global para permitir actualizaciones automáticas
+    window.routeMap = routeMap;
 });
 
 // Hacer disponible globalmente para debugging
