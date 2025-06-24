@@ -28,3 +28,6 @@ Route::get('/api/voluntario-direccion', [RegistroController::class, 'getVoluntar
 
 // Ruta para exportar registros a Excel
 Route::get('/registros/export/excel', [RegistroController::class, 'exportarExcel'])->name('registros.export.excel');
+
+// Ruta API para exportar registros a JSON
+Route::get('/api/registros/export/json', [RegistroController::class, 'exportarJson'])->name('api.registros.export.json');

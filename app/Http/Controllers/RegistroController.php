@@ -383,4 +383,101 @@ class RegistroController extends Controller
         // Exportar usando fast-excel con múltiples hojas
         return (new FastExcel($sheetCollection))->download($fileName);
     }
+
+    /**
+     * Exportar los registros a JSON con el mismo formato del Excel.
+     */
+    public function exportarJson()
+    {
+        // Obtener todos los registros con información del voluntario
+        $registros = Registro::with('voluntario')
+            ->orderBy('fecha', 'desc')
+            ->orderBy('voluntario_id')
+            ->orderBy('hora')
+            ->get();
+
+        // Agrupar registros por fecha y voluntario (mismo código que en exportarExcel)
+        $registrosAgrupados = $registros->groupBy(function($registro) {
+            return $registro->fecha->format('Y-m-d') . '_' . $registro->voluntario_id;
+        })->map(function($grupo) {
+            $primerRegistro = $grupo->first();
+            
+            // Separar registros por tipo
+            $entradas = $grupo->where('tipo_actividad', 'Entrada');
+            $salidas = $grupo->where('tipo_actividad', 'Salida');
+            $extras = $grupo->where('tipo_actividad', 'Extra');
+            
+            // Para compatibilidad con la vista actual
+            $entrada = $entradas->first();
+            $salida = $salidas->first();
+            
+            // Calcular horas trabajadas con manejo de errores
+            $horasTotales = 0;
+            if ($entrada && $salida) {
+                try {
+                    // Obtener solo las horas y minutos como string
+                    $horaEntradaStr = is_string($entrada->hora) ? $entrada->hora : $entrada->hora->format('H:i:s');
+                    $horaSalidaStr = is_string($salida->hora) ? $salida->hora : $salida->hora->format('H:i:s');
+                    
+                    // Crear objetos Carbon desde las horas en la misma fecha
+                    $fechaBase = $primerRegistro->fecha;
+                    $horaEntrada = Carbon::createFromFormat('Y-m-d H:i:s', $fechaBase->format('Y-m-d') . ' ' . $horaEntradaStr);
+                    $horaSalida = Carbon::createFromFormat('Y-m-d H:i:s', $fechaBase->format('Y-m-d') . ' ' . $horaSalidaStr);
+                    
+                    // Si la hora de salida es menor que la de entrada, asumir que es del día siguiente
+                    if ($horaSalida->lt($horaEntrada)) {
+                        $horaSalida->addDay();
+                    }
+                    
+                    // Calcular diferencia en horas (salida - entrada)
+                    $horasTotales = $horaSalida->diffInMinutes($horaEntrada) / 60;
+                    
+                    // Asegurar que el resultado sea positivo
+                    $horasTotales = abs($horasTotales);
+                    
+                } catch (\Exception $e) {
+                    // Si hay error en el parsing, establecer horas como 0
+                    $horasTotales = 0;
+                    Log::error('Error calculando horas: ' . $e->getMessage());
+                }
+            }
+            
+            return (object) [
+                'fecha' => $primerRegistro->fecha,
+                'dia_semana' => $primerRegistro->fecha->locale('es')->dayName,
+                'voluntario' => $primerRegistro->voluntario,
+                'entrada' => $entrada,
+                'salida' => $salida,
+                'extras' => $extras,
+                // Nuevas colecciones con TODOS los registros de cada tipo
+                'entradas' => $entradas,
+                'salidas' => $salidas,
+                'horas_totales' => $horasTotales,
+                'ubicacion_entrada' => $entrada ? $entrada->ubicacion_desde : null,
+                'ubicacion_salida' => $salida ? $salida->ubicacion_hasta : null,
+                'millas_totales' => $grupo->sum('millas')
+            ];
+        })->sortByDesc('fecha');
+
+        // Crear un objeto de exportación
+        $exportObj = new RegistrosExport($registrosAgrupados);
+        
+        // Obtener las hojas para cada voluntario (mismo formato que Excel)
+        $sheetsData = $exportObj->sheets();
+        
+        // Convertir a formato JSON estructurado
+        $jsonData = [];
+        
+        foreach ($sheetsData as $nombreVoluntario => $datos) {
+            $jsonData[$nombreVoluntario] = $datos->toArray();
+        }
+        
+        // Retornar como respuesta JSON
+        return response()->json([
+            'success' => true,
+            'timestamp' => Carbon::now()->toISOString(),
+            'total_voluntarios' => count($jsonData),
+            'data' => $jsonData
+        ], 200);
+    }
 }
