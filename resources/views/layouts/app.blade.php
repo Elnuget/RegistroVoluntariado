@@ -36,6 +36,66 @@
             font-weight: bold;
         }
         
+        /* Estilos responsivos para navbar */
+        .navbar-toggler {
+            border: none;
+            padding: 0.25rem 0.5rem;
+        }
+        
+        .navbar-toggler:focus {
+            box-shadow: none;
+        }
+        
+        .navbar-toggler-icon {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.8%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+        }
+        
+        @media (max-width: 991.98px) {
+            .navbar-collapse {
+                background-color: #343a40;
+                margin-top: 0.5rem;
+                padding: 1rem 0;
+                border-radius: 0.375rem;
+            }
+            
+            .navbar-nav {
+                padding: 0.5rem 0;
+            }
+            
+            .navbar-nav .nav-link {
+                padding: 0.75rem 1rem;
+                border-bottom: 1px solid rgba(255,255,255,0.1);
+            }
+            
+            .navbar-nav .nav-item:last-child .nav-link {
+                border-bottom: none;
+            }
+            
+            .navbar-nav .nav-link:hover {
+                background-color: rgba(255,255,255,0.1);
+                border-radius: 0.25rem;
+            }
+            
+            .navbar-brand {
+                font-size: 1.1rem;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .container {
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+            
+            .navbar-brand {
+                font-size: 1rem;
+            }
+            
+            .content-container {
+                padding: 15px 0;
+            }
+        }
+        
         /* Estilos para la tabla de registros */
         .table td {
             vertical-align: middle;
@@ -97,6 +157,26 @@
         .content-container {
             padding: 20px 0;
         }
+        
+        /* Mejoras adicionales para móviles */
+        .footer {
+            margin-top: auto;
+        }
+        
+        @media (max-width: 768px) {
+            .table-responsive {
+                font-size: 0.875rem;
+            }
+            
+            .btn-sm {
+                font-size: 0.75rem;
+                padding: 0.2rem 0.4rem;
+            }
+            
+            .modal-dialog {
+                margin: 0.5rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -107,22 +187,30 @@
                 <a class="navbar-brand" href="{{ url('/') }}">
                     {{ config('app.name', 'Registro de Voluntariado') }}
                 </a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Alternar navegación">
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="collapse navbar-collapse" id="navbarNav">
-                    <ul class="navbar-nav">
+                    <ul class="navbar-nav ms-auto">
                         <li class="nav-item">
-                            <a class="nav-link {{ request()->is('/') ? 'active' : '' }}" href="{{ url('/') }}">Inicio</a>
+                            <a class="nav-link {{ request()->is('/') ? 'active' : '' }}" href="{{ url('/') }}">
+                                <i class="fas fa-home me-1"></i>Inicio
+                            </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {{ request()->is('voluntarios*') ? 'active' : '' }}" href="{{ route('voluntarios.index') }}">Voluntarios</a>
+                            <a class="nav-link {{ request()->is('voluntarios*') ? 'active' : '' }}" href="{{ route('voluntarios.index') }}">
+                                <i class="fas fa-users me-1"></i>Voluntarios
+                            </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {{ request()->is('registros*') ? 'active' : '' }}" href="{{ route('registros.index') }}">Registros</a>
+                            <a class="nav-link {{ request()->is('registros*') ? 'active' : '' }}" href="{{ route('registros.index') }}">
+                                <i class="fas fa-clipboard-list me-1"></i>Registros
+                            </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {{ request()->is('formulario*') ? 'active' : '' }}" href="{{ route('registros.formulario') }}">Formulario</a>
+                            <a class="nav-link {{ request()->is('formulario*') ? 'active' : '' }}" href="{{ route('registros.formulario') }}">
+                                <i class="fas fa-edit me-1"></i>Formulario
+                            </a>
                         </li>
                     </ul>
                 </div>
