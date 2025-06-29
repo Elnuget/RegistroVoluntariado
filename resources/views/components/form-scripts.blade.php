@@ -230,8 +230,11 @@ async function checkAndSetTipoActividad(voluntarioId) {
         const data = await response.json();
         
         if (response.ok) {
-            // Seleccionar automáticamente el tipo de actividad sugerido
-            tipoActividadSelect.value = data.tipo_sugerido;
+            // Solo seleccionar automáticamente si no hay un tipo ya seleccionado por el usuario
+            const currentTipoActividad = tipoActividadSelect.value;
+            if (!currentTipoActividad || currentTipoActividad === '') {
+                tipoActividadSelect.value = data.tipo_sugerido;
+            }
             
             // Mostrar información visual (opcional)
             const tipoActividadContainer = tipoActividadSelect.parentElement;
@@ -262,8 +265,11 @@ async function checkAndSetTipoActividad(voluntarioId) {
               
               // Solo configurar ubicaciones automáticamente si es el día actual
               if (data.es_hoy) {
-                // Configurar ubicaciones basado en el tipo de actividad
-                if (data.tipo_sugerido === 'Entrada') {
+                // Usar el tipo de actividad actualmente seleccionado en lugar del sugerido
+                const tipoActividadActual = tipoActividadSelect.value;
+                
+                // Configurar ubicaciones basado en el tipo de actividad actual
+                if (tipoActividadActual === 'Entrada') {
                     // Para "Entrada": Voluntario -> Oficina
                     obtenerDireccionVoluntarioComoOrigen(voluntarioId);
                     
@@ -282,7 +288,7 @@ async function checkAndSetTipoActividad(voluntarioId) {
                     
                     // Actualizar el mapa con la dirección de la oficina como destino
                     updateMapSafely('destination', direccionOficina);
-                } else if (data.tipo_sugerido === 'Salida') {
+                } else if (tipoActividadActual === 'Salida') {
                     // Para "Salida": Oficina -> Voluntario
                     const ubicacionDesdeInput = document.getElementById('ubicacion_desde');
                     const direccionOrigenInfo = document.getElementById('direccion_origen_info');
