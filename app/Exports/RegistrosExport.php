@@ -78,6 +78,9 @@ class RegistrosExport
                 'TOTAL HOURS' => number_format($registro->horas_totales, 2),
                 'MILES' => number_format($registro->millas_totales, 2),
                 'PURPOSE' => $this->formatActividades($registro),
+                'LOCATIONS_FROM' => $this->formatUbicacionesDesde($registro),
+                'LOCATIONS_TO' => $this->formatUbicacionesHasta($registro),
+                'DETAILED_ACTIVITIES' => $this->formatActividadesDetalladas($registro),
             ];
             
             $data->push($row);
@@ -140,5 +143,110 @@ class RegistrosExport
         }
         
         return implode(" - ", $horarios);
+    }
+    
+    /**
+     * Formatea las ubicaciones desde para el JSON
+     */
+    private function formatUbicacionesDesde($registro)
+    {
+        $ubicaciones = [];
+        
+        if ($registro->entradas->count() > 0) {
+            foreach ($registro->entradas as $entrada) {
+                $ubicaciones[] = 'Entrada: ' . ($entrada->ubicacion_desde ?? 'N/A');
+            }
+        }
+        
+        if ($registro->salidas->count() > 0) {
+            foreach ($registro->salidas as $salida) {
+                $ubicaciones[] = 'Salida: ' . ($salida->ubicacion_desde ?? 'N/A');
+            }
+        }
+        
+        if ($registro->extras->count() > 0) {
+            foreach ($registro->extras as $extra) {
+                $ubicaciones[] = 'Extra: ' . ($extra->ubicacion_desde ?? 'N/A');
+            }
+        }
+        
+        return implode(" | ", $ubicaciones);
+    }
+    
+    /**
+     * Formatea las ubicaciones hasta para el JSON
+     */
+    private function formatUbicacionesHasta($registro)
+    {
+        $ubicaciones = [];
+        
+        if ($registro->entradas->count() > 0) {
+            foreach ($registro->entradas as $entrada) {
+                $ubicaciones[] = 'Entrada: ' . ($entrada->ubicacion_hasta ?? 'N/A');
+            }
+        }
+        
+        if ($registro->salidas->count() > 0) {
+            foreach ($registro->salidas as $salida) {
+                $ubicaciones[] = 'Salida: ' . ($salida->ubicacion_hasta ?? 'N/A');
+            }
+        }
+        
+        if ($registro->extras->count() > 0) {
+            foreach ($registro->extras as $extra) {
+                $ubicaciones[] = 'Extra: ' . ($extra->ubicacion_hasta ?? 'N/A');
+            }
+        }
+        
+        return implode(" | ", $ubicaciones);
+    }
+    
+    /**
+     * Formatea las actividades detalladas con tipo y horario para el JSON
+     */
+    private function formatActividadesDetalladas($registro)
+    {
+        $actividades = [];
+        
+        if ($registro->entradas->count() > 0) {
+            foreach ($registro->entradas as $entrada) {
+                $hora = is_string($entrada->hora) ? $entrada->hora : $entrada->hora->format('H:i');
+                $actividades[] = sprintf(
+                    'Entrada (%s): %s [%s → %s]', 
+                    $hora,
+                    $entrada->actividad ?? 'N/A',
+                    $entrada->ubicacion_desde ?? 'N/A',
+                    $entrada->ubicacion_hasta ?? 'N/A'
+                );
+            }
+        }
+        
+        if ($registro->salidas->count() > 0) {
+            foreach ($registro->salidas as $salida) {
+                $hora = is_string($salida->hora) ? $salida->hora : $salida->hora->format('H:i');
+                $actividades[] = sprintf(
+                    'Salida (%s): %s [%s → %s]', 
+                    $hora,
+                    $salida->actividad ?? 'N/A',
+                    $salida->ubicacion_desde ?? 'N/A',
+                    $salida->ubicacion_hasta ?? 'N/A'
+                );
+            }
+        }
+        
+        if ($registro->extras->count() > 0) {
+            foreach ($registro->extras as $extra) {
+                $hora = is_string($extra->hora) ? $extra->hora : $extra->hora->format('H:i');
+                $actividades[] = sprintf(
+                    'Extra (%s): %s [%s → %s]', 
+                    $hora,
+                    $extra->actividad ?? 'N/A',
+                    $extra->ubicacion_desde ?? 'N/A',
+                    $extra->ubicacion_hasta ?? 'N/A'
+                );
+            }
+        }
+        
+        return implode(" | ", $actividades);
     }
 }
